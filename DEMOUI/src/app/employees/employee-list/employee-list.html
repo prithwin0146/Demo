@@ -1,0 +1,62 @@
+<div class="container">
+  <h1>Employee Management System</h1>
+
+  <!-- Loader -->
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Loading employees...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="error-alert">
+    <strong>Error:</strong> {{ error }}
+    <button (click)="dismissError()" class="btn-close">✕</button>
+  </div>
+
+  <!-- Content (shown when not loading) -->
+  <div *ngIf="!loading" class="content">
+    <div class="button-group">
+      <button [routerLink]="['/employees/add']" [disabled]="loading" class="btn-add">
+        Add Employee
+      </button>
+      <button (click)="refreshEmployees()" [disabled]="loading" class="btn-refresh">
+        ↻ Refresh
+      </button>
+      <button (click)="logout()" class="btn-logout">
+        Logout
+      </button>
+    </div>
+
+    <!-- Employee Table -->
+    <div *ngIf="employees && employees.length > 0; else noEmployees" class="table-container">
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees">
+            <td>{{ employee.id }}</td>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.email }}</td>
+            <td>{{ employee.role }}</td>
+            <td class="actions">
+              <button [routerLink]="['/employees/edit', employee.id]" class="btn-edit">Edit</button>
+              <button (click)="deleteEmployee(employee.id)" class="btn-delete">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- No Employees Message -->
+    <ng-template #noEmployees>
+      <p class="no-data">No employees found.</p>
+    </ng-template>
+  </div>
+</div>

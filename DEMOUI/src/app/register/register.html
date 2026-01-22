@@ -1,0 +1,75 @@
+<div class="register-container">
+  <div class="register-card">
+    <h2>Create User Account</h2>
+    
+    <!-- Error Alert -->
+    <div *ngIf="error" class="error-alert">
+      <strong>Error:</strong> {{ error }}
+      <button (click)="dismissError()" class="btn-close">✕</button>
+    </div>
+
+    <!-- Registration Form -->
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
+      <!-- Username Field -->
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          [(ngModel)]="user.username"
+          required
+          placeholder="Enter your username"
+          class="form-control"
+        />
+        <span *ngIf="error && !user.username" class="error-text">Username is required</span>
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="user.email"
+          required
+          email
+          placeholder="Enter your email"
+          class="form-control"
+        />
+        <span *ngIf="registerForm.submitted && !user.email" class="error-text">Email is required</span>
+        <span *ngIf="registerForm.submitted && user.email && !isValidEmail(user.email)" class="error-text">Please enter a valid email</span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="user.password"
+          required
+          minlength="6"
+          placeholder="Enter password (min 6 characters)"
+          class="form-control"
+        />
+        <span *ngIf="registerForm.submitted && !user.password" class="error-text">Password is required</span>
+        <span *ngIf="registerForm.submitted && user.password && user.password.length < 6" class="error-text">Password must be at least 6 characters</span>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" [disabled]="loading" class="btn-submit">
+        {{ loading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+
+    <!-- Cancel Button -->
+    <div class="button-group">
+      <button (click)="goBack()" type="button" class="btn-cancel">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
