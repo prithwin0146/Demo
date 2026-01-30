@@ -22,6 +22,13 @@ namespace EmployeeApi.Controllers
             return await _employeeService.GetAllAsync();
         }
 
+        // GET paginated employees with stored procedure
+        [HttpGet("paged")]
+        public async Task<PagedResponse<EmployeeDto>> GetPaged([FromQuery] PaginationRequest request)
+        {
+            return await _employeeService.GetEmployeesPagedAsync(request);
+        }
+
         // GET employee by id
         [HttpGet("{id}")]
         public async Task<EmployeeDto> Get(int id)
@@ -31,14 +38,33 @@ namespace EmployeeApi.Controllers
 
         // POST create employee
         [HttpPost]
-        public async Task<EmployeeDto> Create(CreateEmployeeDto dto)
+        public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeDto dto)
         {
-            return await _employeeService.CreateAsync(dto);
+            // Validate password
+            if (string.IsNullOrWhiteSpace(dto.Password))
+            {
+                return BadRequest(new { message = "Password is required" });
+            }
+
+            if (dto.Password.Length < 8)
+            {
+                return BadRequest(new { message = "Password must be at least 8 characters long" });
+            }
+
+            try
+            {
+                var employee = await _employeeService.CreateAsync(dto);
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // PUT update employee
         [HttpPut("{id}")]
-        public async Task<EmployeeDto> Update(int id, CreateEmployeeDto dto)
+        public async Task<EmployeeDto> Update(int id, UpdateEmployeeDto dto)
         {
             return await _employeeService.UpdateAsync(id, dto);
         }

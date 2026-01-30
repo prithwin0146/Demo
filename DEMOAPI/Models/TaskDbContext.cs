@@ -36,7 +36,8 @@ namespace EmployeeApi.Models
 
                 entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
-                entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.JobRole).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Employee");
             });
 
             // USERS 

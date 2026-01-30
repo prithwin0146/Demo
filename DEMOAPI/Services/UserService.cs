@@ -46,6 +46,7 @@ namespace EmployeeApi.Services
         //Login
         public LoginResponseDto? Login(LoginUserDto loginDto)
         {
+            // Find user by email and password
             var user = _userRepository.Find(x => x.Email == loginDto.Email && x.Password == loginDto.Password);
 
             if (user == null)
@@ -67,7 +68,8 @@ namespace EmployeeApi.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username ?? "")
+                new Claim(ClaimTypes.Name, user.Username ?? ""),
+                new Claim(ClaimTypes.Role, user.Role ?? "Employee")
             };
 
             var creds = new SigningCredentials(

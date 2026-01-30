@@ -38,18 +38,35 @@
         />
       </div>
 
-      <!-- Role Field -->
+      <!-- Job Role Field -->
       <div class="form-group">
-        <label for="role">Role:</label>
-        <input
-          type="text"
-          id="role"
-          name="role"
-          [(ngModel)]="role"
-          placeholder="Enter employee role"
+        <label for="jobRole">Job Role:</label>
+        <select
+          id="jobRole"
+          name="jobRole"
+          [(ngModel)]="jobRole"
           class="form-control"
           required
-        />
+        >
+          <option value="">Select a job role</option>
+          <option *ngFor="let jr of jobRoles" [value]="jr">{{ jr }}</option>
+        </select>
+      </div>
+
+      <!-- System Role Field -->
+      <div class="form-group">
+        <label for="systemRole">System Role:</label>
+        <select
+          id="systemRole"
+          name="systemRole"
+          [(ngModel)]="systemRole"
+          class="form-control"
+          [disabled]="!isAdmin"
+          required
+        >
+          <option *ngFor="let sr of systemRoles" [value]="sr">{{ sr }}</option>
+        </select>
+        <small class="form-text" *ngIf="!isAdmin">Only Admin can edit system roles</small>
       </div>
 
       <!-- Buttons -->

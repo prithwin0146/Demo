@@ -15,9 +15,11 @@ builder.Services.AddDbContext<TaskDbContext>(options =>
 
 // Repositories
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Controllers
 builder.Services.AddControllers();

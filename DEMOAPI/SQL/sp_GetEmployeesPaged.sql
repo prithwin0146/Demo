@@ -29,7 +29,7 @@ BEGIN
             e.Name,
             e.Email,
             e.JobRole,
-            e.UserId,
+            e.Role,
             COUNT(*) OVER() AS TotalCount
         FROM Employees e
         WHERE (@SearchTerm IS NULL 
@@ -42,7 +42,7 @@ BEGIN
         Name,
         Email,
         JobRole,
-        UserId,
+        Role,
         TotalCount
     FROM EmployeeCTE
     ORDER BY ' + QUOTENAME(@SortBy) + ' ' + @SortOrder + '
@@ -54,4 +54,4 @@ BEGIN
         N'@SearchTerm NVARCHAR(100), @Offset INT, @PageSize INT',
         @SearchTerm, @Offset, @PageSize;
 END
-GO
+GO  

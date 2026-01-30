@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, PLATFORM_ID, Inject } from '@angular/core';
 import { AuthService } from '../login/auth.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +17,11 @@ export class Login {
   password = '';
   error: string | null = null;
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   dismissError(): void {
     this.error = null;
@@ -33,7 +38,9 @@ export class Login {
     this.auth.login(this.email, this.password).subscribe({
       next: (res: any) => {
         console.log('Login successful');
-        localStorage.setItem('token', res.token);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('token', res.token);
+        }
         this.router.navigate(['/employees']);
       },
       error: (err) => {

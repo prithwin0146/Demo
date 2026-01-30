@@ -7,21 +7,27 @@ namespace EmployeeApi.Services;
 public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repository;
+    private readonly IUserRepository _userRepository;
+    private readonly TaskDbContext _context;
 
-    public EmployeeService(IEmployeeRepository repository)
+    public EmployeeService(IEmployeeRepository repository, IUserRepository userRepository, TaskDbContext context)
     {
         _repository = repository;
+        _userRepository = userRepository;
+        _context = context;
     }
     //GET ALL
     public async Task<List<EmployeeDto>> GetAllAsync()
     {
         var employees = await _repository.GetAllAsync();
+
         return employees.Select(emp => new EmployeeDto
         {
             Id = emp.Id,
             Name = emp.Name,
             Email = emp.Email,
-            Role = emp.Role
+            JobRole = emp.JobRole,
+            SystemRole = emp.Role ?? "Employee"
         }).ToList();
     }
     //GET BY ID
@@ -35,38 +41,51 @@ public class EmployeeService : IEmployeeService
             Id = emp.Id,
             Name = emp.Name,
             Email = emp.Email,
-            Role = emp.Role
+            JobRole = emp.JobRole,
+            SystemRole = emp.Role ?? "Employee"
         };
     }
     //CREATE
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto)
     {
+        // Check if user with this email already exists
+        var existingUser = _userRepository.Find(u => u.Email == dto.Email);
+        if (existingUser != null)
+        {
+            throw new InvalidOperationException("A user with this email already exists.");
+        }
+
+        // Create employee record
         var employee = new Employee
         {
             Name = dto.Name,
             Email = dto.Email,
-            Role = dto.Role
+            JobRole = dto.JobRole,
+            Role = dto.SystemRole ?? "Employee"
         };
 
-        var createdEmployee = await _repository.AddAsync(employee);
+        // Use stored procedure to create employee with password
+        var createdEmployee = await _repository.AddWithPasswordAsync(employee, dto.Password);
 
         return new EmployeeDto
         {
             Id = createdEmployee.Id,
             Name = createdEmployee.Name,
             Email = createdEmployee.Email,
-            Role = createdEmployee.Role
+            JobRole = createdEmployee.JobRole,
+            SystemRole = createdEmployee.Role ?? "Employee"
         };
     }
     //UPDATE
-    public async Task<EmployeeDto> UpdateAsync(int id, CreateEmployeeDto dto)
+    public async Task<EmployeeDto> UpdateAsync(int id, UpdateEmployeeDto dto)
     {
         var existing = await _repository.GetByIdAsync(id);
         if (existing == null) return null;
 
         existing.Name = dto.Name;
         existing.Email = dto.Email;
-        existing.Role = dto.Role;
+        existing.JobRole = dto.JobRole;
+        existing.Role = dto.SystemRole ?? "Employee";
 
         var updatedEmployee = await _repository.UpdateAsync(existing);
 
@@ -75,7 +94,8 @@ public class EmployeeService : IEmployeeService
             Id = updatedEmployee.Id,
             Name = updatedEmployee.Name,
             Email = updatedEmployee.Email,
-            Role = updatedEmployee.Role
+            JobRole = updatedEmployee.JobRole,
+            SystemRole = updatedEmployee.Role ?? "Employee"
         };
     }
     //DELETE
@@ -91,7 +111,14 @@ public class EmployeeService : IEmployeeService
             Id = deletedEmployee.Id,
             Name = deletedEmployee.Name,
             Email = deletedEmployee.Email,
-            Role = deletedEmployee.Role
+            JobRole = deletedEmployee.JobRole,
+            SystemRole = deletedEmployee.Role ?? "Employee"
         };
+    }
+
+    //GET PAGED WITH STORED PROCEDURE
+    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request)
+    {
+        return await _repository.GetEmployeesPagedAsync(request);
     }
 }

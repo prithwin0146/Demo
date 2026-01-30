@@ -63,4 +63,20 @@ export class EmployeeService {
       tap(() => this.invalidateCache())
     );
   }
+
+  // Paginated employees using stored procedure
+  getEmployeesPaged(pageNumber: number = 1, pageSize: number = 10, sortBy: string = 'Id', ascending: boolean = true, searchTerm: string = '') {
+    const params: any = {
+      PageNumber: pageNumber,
+      PageSize: pageSize,
+      SortBy: sortBy,
+      Ascending: ascending
+    };
+    
+    if (searchTerm) {
+      params.SearchTerm = searchTerm;
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/paged`, { params });
+  }
 }

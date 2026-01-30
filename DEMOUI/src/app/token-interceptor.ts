@@ -1,11 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
+  const platformId = inject(PLATFORM_ID);
+  
   // Skip intercepting if localStorage is not available (SSR safety)
-  if (typeof window === 'undefined') return next(req);
+  if (!isPlatformBrowser(platformId)) return next(req);
 
   const token = localStorage.getItem('token');
   const router = inject(Router);
@@ -27,9 +30,12 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((err) => {
+      const platformId = inject(PLATFORM_ID);
       if (err.status === 401) {
         console.warn('Token expired or invalid, clearing storage and redirecting to login');
-        localStorage.removeItem('token');
+        if (isPlatformBrowser(platformId)) {
+          localStorage.removeItem('token');
+        }
         router.navigate(['/login']);
       }
       throw err;

@@ -1,12 +1,14 @@
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { CanActivateFn } from '@angular/router';
+import type { CanActivateFn } from '@angular/router';
+import { isPlatformBrowser } from '@angular/common';
 
 export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
+  const platformId = inject(PLATFORM_ID);
 
   // SSR safety: Skip guard during server-side rendering
-  if (typeof window === 'undefined') {
+  if (!isPlatformBrowser(platformId)) {
     console.log('Auth Guard - SSR context detected, skipping guard');
     return true;
   }

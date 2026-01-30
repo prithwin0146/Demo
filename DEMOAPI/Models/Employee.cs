@@ -11,5 +11,7 @@ public partial class Employee
 
     public string Email { get; set; } = null!;
 
-    public string Role { get; set; } = null!;
+    public string JobRole { get; set; } = null!;
+
+    public string Role { get; set; } = "Employee";
 }

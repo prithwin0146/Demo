@@ -39,6 +39,16 @@ namespace EmployeeApi.Controllers
             return Ok("Registered!");
         }
 
+        // GET ALL USERS
+        [HttpGet]
+        public async Task<IActionResult> GetAllUsers()
+        {
+            var users = await _context.Users
+                .Select(u => new { u.Id, u.Username, u.Email, u.Role })
+                .ToListAsync();
+            return Ok(users);
+        }
+
         // LOGIN
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User loginUser)
@@ -63,7 +73,8 @@ namespace EmployeeApi.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username ?? "")
+                new Claim(ClaimTypes.Name, user.Username ?? ""),
+                new Claim(ClaimTypes.Role, user.Role ?? "Employee")
             };
 
             var creds = new SigningCredentials(

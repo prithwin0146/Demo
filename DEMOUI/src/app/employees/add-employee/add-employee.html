@@ -38,18 +38,69 @@
         />
       </div>
 
-      <!-- Role Field -->
+      <!-- Job Role Field -->
       <div class="form-group">
-        <label for="role">Role:</label>
-        <input
-          type="text"
-          id="role"
-          name="role"
-          [(ngModel)]="role"
-          placeholder="Enter employee role"
+        <label for="jobRole">Job Role:</label>
+        <select
+          id="jobRole"
+          name="jobRole"
+          [(ngModel)]="jobRole"
           class="form-control"
           required
+        >
+          <option value="">Select a job role</option>
+          <option *ngFor="let jr of jobRoles" [value]="jr">{{ jr }}</option>
+        </select>
+      </div>
+
+      <!-- System Role Field -->
+      <div class="form-group">
+        <label for="systemRole">System Role:</label>
+        <select
+          id="systemRole"
+          name="systemRole"
+          [(ngModel)]="systemRole"
+          class="form-control"
+          [disabled]="!canEditSystemRole"
+          required
+        >
+          <option *ngFor="let sr of systemRoles" [value]="sr">{{ sr }}</option>
+        </select>
+        <small class="form-text" *ngIf="!canEditSystemRole">Only Admin and HR can edit system roles</small>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter password (min 8 characters)"
+          class="form-control"
+          minlength="8"
+          required
         />
+        <small class="form-text">Password must be at least 8 characters</small>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password:</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          name="confirmPassword"
+          [(ngModel)]="confirmPassword"
+          placeholder="Re-enter password"
+          class="form-control"
+          minlength="8"
+          required
+        />
+        <small class="form-text" *ngIf="password && confirmPassword && password !== confirmPassword" style="color: #dc2626;">
+          Passwords do not match
+        </small>
       </div>
 
       <!-- Buttons -->
