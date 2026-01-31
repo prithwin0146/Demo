@@ -46,7 +46,7 @@ namespace EmployeeApi.Services
         //Login
         public LoginResponseDto? Login(LoginUserDto loginDto)
         {
-            // Find user by email and password
+          
             var user = _userRepository.Find(x => x.Email == loginDto.Email && x.Password == loginDto.Password);
 
             if (user == null)
@@ -56,7 +56,7 @@ namespace EmployeeApi.Services
             return new LoginResponseDto 
             { 
                 Token = token,
-                Role = user.Role ?? "Employee"  // Include user role in response
+                Role = user.Role ?? "Employee"  
             };
         }
 

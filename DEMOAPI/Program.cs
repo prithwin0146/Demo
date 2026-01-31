@@ -20,6 +20,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 // Services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
+builder.Services.AddScoped<IEmployeeMapper, EmployeeMapper>();
 
 // Controllers
 builder.Services.AddControllers();

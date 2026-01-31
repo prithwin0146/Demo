@@ -15,37 +15,31 @@ public class EmployeeRepository : IEmployeeRepository
     {
         _context = context;
     }
-
+    // Get all 
     public async Task<List<Employee>> GetAllAsync()
     {
-        return await _context.LoadStoredProc<Employee>("sp_GetAllEmployees");
+        return await _context.LoadStoredProc<Employee>("GetAllEmployees");
     }
-
+    // Get by ID 
     public async Task<Employee?> GetByIdAsync(int id)
     {
         return await _context.LoadStoredProcSingle<Employee>(
-            "sp_GetEmployeeById",
+            "GetEmployeeById",
             new SqlParameter("@Id", id));
     }
-
+    // Create (without password)
     public async Task<Employee> AddAsync(Employee emp)
     {
-        var outputParam = new SqlParameter("@NewEmployeeId", SqlDbType.Int)
-        {
-            Direction = ParameterDirection.Output
-        };
-
-        var (results, newId) = await _context.LoadStoredProcWithOutput<Employee>(
-            "sp_AddEmployee",
-            outputParam,
+        var results = await _context.LoadStoredProc<Employee>(
+            "CreateEmployeeWithoutPassword",
             new SqlParameter("@Name", emp.Name),
             new SqlParameter("@Email", emp.Email),
             new SqlParameter("@JobRole", emp.JobRole ?? (object)DBNull.Value),
-            new SqlParameter("@Role", emp.Role ?? "Employee"));
+            new SqlParameter("@SystemRole", emp.Role ?? "Employee"));
 
-        return results.FirstOrDefault() ?? throw new Exception("Failed to add employee");
+        return results.FirstOrDefault() ?? throw new Exception("Failed to create employee");
     }
-
+    // Create (with password)
     public async Task<Employee> AddWithPasswordAsync(Employee emp, string password)
     {
         var outputParam = new SqlParameter("@NewEmployeeId", SqlDbType.Int)
@@ -54,7 +48,7 @@ public class EmployeeRepository : IEmployeeRepository
         };
 
         var (results, newId) = await _context.LoadStoredProcWithOutput<Employee>(
-            "sp_CreateEmployee",
+            "CreateEmployee",
             outputParam,
             new SqlParameter("@Name", emp.Name),
             new SqlParameter("@Email", emp.Email),
@@ -64,11 +58,11 @@ public class EmployeeRepository : IEmployeeRepository
 
         return results.FirstOrDefault() ?? throw new Exception("Failed to create employee");
     }
-
+    // Update 
     public async Task<Employee> UpdateAsync(Employee emp)
     {
         var results = await _context.LoadStoredProc<Employee>(
-            "sp_UpdateEmployee",
+            "UpdateEmployee",
             new SqlParameter("@Id", emp.Id),
             new SqlParameter("@Name", emp.Name),
             new SqlParameter("@Email", emp.Email),
@@ -77,17 +71,17 @@ public class EmployeeRepository : IEmployeeRepository
 
         return results.FirstOrDefault() ?? throw new Exception("Failed to update employee");
     }
-
+    // Delete 
     public async Task<Employee> DeleteAsync(Employee emp)
     {
         var results = await _context.LoadStoredProc<Employee>(
-            "sp_DeleteEmployee",
+            "DeleteEmployee",
             new SqlParameter("@Id", emp.Id));
 
         return results.FirstOrDefault() ?? throw new Exception("Employee not found");
     }
-
-    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request)
+    // Pagination 
+    public async Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request)
     {
         var results = await _context.LoadStoredProc<EmployeePagedResult>(
             "sp_GetEmployeesPaged",
@@ -98,24 +92,16 @@ public class EmployeeRepository : IEmployeeRepository
             new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
-        var totalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize);
 
-        var employeeDtos = results.Select(r => new EmployeeDto
+        var employees = results.Select(r => new Employee
         {
             Id = r.Id,
             Name = r.Name,
             Email = r.Email,
             JobRole = r.JobRole,
-            SystemRole = r.Role ?? "Employee"
+            Role = r.Role
         }).ToList();
 
-        return new PagedResponse<EmployeeDto>
-        {
-            Data = employeeDtos,
-            PageNumber = request.PageNumber,
-            PageSize = request.PageSize,
-            TotalRecords = totalRecords,
-            TotalPages = totalPages
-        };
+        return (employees, totalRecords);
     }
 }

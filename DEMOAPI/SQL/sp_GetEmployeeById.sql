@@ -1,17 +1,17 @@
--- Get Employee by ID
+-- Get Employee By ID
 CREATE OR ALTER PROCEDURE sp_GetEmployeeById
     @Id INT
 AS
 BEGIN
     SET NOCOUNT ON;
-
+    
     SELECT 
-        e.Id,
-        e.Name,
-        e.Email,
-        e.JobRole,
-        e.Role
-    FROM Employees e
-    WHERE e.Id = @Id;
+        Id,
+        Name,
+        Email,
+        JobRole,
+        Role
+    FROM Employees
+    WHERE Id = @Id;
 END
 GO

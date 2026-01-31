@@ -64,7 +64,7 @@ namespace EmployeeApi.Controllers
             var token = GenerateJwtToken(existingUser);
             return Ok(new { token });
         }
-
+        // JWT
         private string GenerateJwtToken(User user)
         {
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);

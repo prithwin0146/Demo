@@ -1,5 +1,12 @@
--- Update Employee
-CREATE OR ALTER PROCEDURE sp_UpdateEmployee
+USE [TaskDb]
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[UpdateEmployee]
     @Id INT,
     @Name NVARCHAR(100),
     @Email NVARCHAR(150),
@@ -8,32 +15,37 @@ CREATE OR ALTER PROCEDURE sp_UpdateEmployee
 AS
 BEGIN
     SET NOCOUNT ON;
+    
     BEGIN TRANSACTION;
     BEGIN TRY
-        -- Update Employee
+        -- Get the old email before updating
+        DECLARE @OldEmail NVARCHAR(150);
+        SELECT @OldEmail = Email FROM Employees WHERE Id = @Id;
+        
+        -- Update Employee table (including Role)
         UPDATE Employees 
         SET Name = @Name, 
             Email = @Email, 
-            JobRole = @JobRole,
+            JobRole = @JobRole, 
             Role = @SystemRole
         WHERE Id = @Id;
 
-        -- Update User
+        -- Update User table (sync role and other fields)
         UPDATE Users
         SET Username = @Name, 
             Email = @Email, 
             Role = @SystemRole
-        WHERE Email = @Email;
-
+        WHERE Email = @OldEmail;
+        
         -- Return updated employee
         SELECT 
-            e.Id,
-            e.Name,
-            e.Email,
-            e.JobRole,
-            e.Role
-        FROM Employees e
-        WHERE e.Id = @Id;
+            Id,
+            Name,
+            Email,
+            JobRole,
+            Role
+        FROM Employees
+        WHERE Id = @Id;
 
         COMMIT TRANSACTION;
     END TRY

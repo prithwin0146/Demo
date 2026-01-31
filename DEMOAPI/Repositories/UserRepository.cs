@@ -1,4 +1,5 @@
 using EmployeeApi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeApi.Repositories
 {
@@ -11,6 +12,11 @@ namespace EmployeeApi.Repositories
         public User? GetByEmail(string email)
         {
             return _context.Users.FirstOrDefault(u => u.Email == email);
+        }
+
+        public async Task<bool> ExistsWithEmailAsync(string email)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email);
         }
     }
 }

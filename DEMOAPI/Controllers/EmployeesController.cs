@@ -1,5 +1,6 @@
 ﻿using EmployeeApi.DTOs;
 using EmployeeApi.Services;
+using EmployeeApi.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeApi.Controllers
@@ -17,44 +18,46 @@ namespace EmployeeApi.Controllers
 
         // GET all employees
         [HttpGet]
-        public async Task<List<EmployeeDto>> GetAll()
+        public async Task<ActionResult<List<EmployeeDto>>> GetAll()
         {
             return await _employeeService.GetAllAsync();
         }
 
         // GET paginated employees with stored procedure
         [HttpGet("paged")]
-        public async Task<PagedResponse<EmployeeDto>> GetPaged([FromQuery] PaginationRequest request)
+        public async Task<ActionResult<PagedResponse<EmployeeDto>>> GetPaged([FromQuery] PaginationRequest request)
         {
             return await _employeeService.GetEmployeesPagedAsync(request);
         }
 
         // GET employee by id
         [HttpGet("{id}")]
-        public async Task<EmployeeDto> Get(int id)
+        public async Task<ActionResult<EmployeeDto>> Get(int id)
         {
-            return await _employeeService.GetByIdAsync(id);
+            var employee = await _employeeService.GetByIdAsync(id);
+            if (employee == null)
+            {
+                return NotFound(new { message = "Employee not found" });
+            }
+            return employee;
         }
 
         // POST create employee
         [HttpPost]
         public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeDto dto)
         {
-            // Validate password
-            if (string.IsNullOrWhiteSpace(dto.Password))
-            {
-                return BadRequest(new { message = "Password is required" });
-            }
-
-            if (dto.Password.Length < 8)
-            {
-                return BadRequest(new { message = "Password must be at least 8 characters long" });
-            }
-
             try
             {
                 var employee = await _employeeService.CreateAsync(dto);
                 return Ok(employee);
+            }
+            catch (InvalidPasswordException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (DuplicateEmailException ex)
+            {
+                return Conflict(new { message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -64,16 +67,40 @@ namespace EmployeeApi.Controllers
 
         // PUT update employee
         [HttpPut("{id}")]
-        public async Task<EmployeeDto> Update(int id, UpdateEmployeeDto dto)
+        public async Task<ActionResult<EmployeeDto>> Update(int id, UpdateEmployeeDto dto)
         {
-            return await _employeeService.UpdateAsync(id, dto);
+            try
+            {
+                var employee = await _employeeService.UpdateAsync(id, dto);
+                if (employee == null)
+                {
+                    return NotFound(new { message = "Employee not found" });
+                }
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // DELETE remove employee
         [HttpDelete("{id}")]
-        public async Task<EmployeeDto> Delete(int id)
+        public async Task<ActionResult<EmployeeDto>> Delete(int id)
         {
-            return await _employeeService.DeleteAsync(id);
+            try
+            {
+                var employee = await _employeeService.DeleteAsync(id);
+                if (employee == null)
+                {
+                    return NotFound(new { message = "Employee not found" });
+                }
+                return Ok(employee);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

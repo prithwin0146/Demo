@@ -1,6 +1,7 @@
 using EmployeeApi.DTOs;
 using EmployeeApi.Models;
 using EmployeeApi.Repositories;
+using EmployeeApi.Exceptions;
 
 namespace EmployeeApi.Services;
 
@@ -8,27 +9,25 @@ public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repository;
     private readonly IUserRepository _userRepository;
-    private readonly TaskDbContext _context;
+    private readonly IPasswordValidator _passwordValidator;
+    private readonly IEmployeeMapper _mapper;
 
-    public EmployeeService(IEmployeeRepository repository, IUserRepository userRepository, TaskDbContext context)
+    public EmployeeService(
+        IEmployeeRepository repository, 
+        IUserRepository userRepository,
+        IPasswordValidator passwordValidator,
+        IEmployeeMapper mapper)
     {
         _repository = repository;
         _userRepository = userRepository;
-        _context = context;
+        _passwordValidator = passwordValidator;
+        _mapper = mapper;
     }
     //GET ALL
     public async Task<List<EmployeeDto>> GetAllAsync()
     {
         var employees = await _repository.GetAllAsync();
-
-        return employees.Select(emp => new EmployeeDto
-        {
-            Id = emp.Id,
-            Name = emp.Name,
-            Email = emp.Email,
-            JobRole = emp.JobRole,
-            SystemRole = emp.Role ?? "Employee"
-        }).ToList();
+        return _mapper.ToDto(employees);
     }
     //GET BY ID
     public async Task<EmployeeDto> GetByIdAsync(int id)
@@ -36,26 +35,22 @@ public class EmployeeService : IEmployeeService
         var emp = await _repository.GetByIdAsync(id);
         if (emp == null) return null;
 
-        return new EmployeeDto
-        {
-            Id = emp.Id,
-            Name = emp.Name,
-            Email = emp.Email,
-            JobRole = emp.JobRole,
-            SystemRole = emp.Role ?? "Employee"
-        };
+        return _mapper.ToDto(emp);
     }
     //CREATE
     public async Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto)
     {
-        // Check if user with this email already exists
-        var existingUser = _userRepository.Find(u => u.Email == dto.Email);
-        if (existingUser != null)
+        var (isValid, errorMessage) = _passwordValidator.Validate(dto.Password);
+        if (!isValid)
         {
-            throw new InvalidOperationException("A user with this email already exists.");
+            throw new InvalidPasswordException(errorMessage);
         }
 
-        // Create employee record
+        if (await _userRepository.ExistsWithEmailAsync(dto.Email))
+        {
+            throw new DuplicateEmailException(dto.Email);
+        }
+
         var employee = new Employee
         {
             Name = dto.Name,
@@ -64,17 +59,8 @@ public class EmployeeService : IEmployeeService
             Role = dto.SystemRole ?? "Employee"
         };
 
-        // Use stored procedure to create employee with password
         var createdEmployee = await _repository.AddWithPasswordAsync(employee, dto.Password);
-
-        return new EmployeeDto
-        {
-            Id = createdEmployee.Id,
-            Name = createdEmployee.Name,
-            Email = createdEmployee.Email,
-            JobRole = createdEmployee.JobRole,
-            SystemRole = createdEmployee.Role ?? "Employee"
-        };
+        return _mapper.ToDto(createdEmployee);
     }
     //UPDATE
     public async Task<EmployeeDto> UpdateAsync(int id, UpdateEmployeeDto dto)
@@ -88,15 +74,7 @@ public class EmployeeService : IEmployeeService
         existing.Role = dto.SystemRole ?? "Employee";
 
         var updatedEmployee = await _repository.UpdateAsync(existing);
-
-        return new EmployeeDto
-        {
-            Id = updatedEmployee.Id,
-            Name = updatedEmployee.Name,
-            Email = updatedEmployee.Email,
-            JobRole = updatedEmployee.JobRole,
-            SystemRole = updatedEmployee.Role ?? "Employee"
-        };
+        return _mapper.ToDto(updatedEmployee);
     }
     //DELETE
     public async Task<EmployeeDto> DeleteAsync(int id)
@@ -105,20 +83,22 @@ public class EmployeeService : IEmployeeService
         if (emp == null) return null;
 
         var deletedEmployee = await _repository.DeleteAsync(emp);
-
-        return new EmployeeDto
-        {
-            Id = deletedEmployee.Id,
-            Name = deletedEmployee.Name,
-            Email = deletedEmployee.Email,
-            JobRole = deletedEmployee.JobRole,
-            SystemRole = deletedEmployee.Role ?? "Employee"
-        };
+        return _mapper.ToDto(deletedEmployee);
     }
 
     //GET PAGED WITH STORED PROCEDURE
     public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request)
     {
-        return await _repository.GetEmployeesPagedAsync(request);
+        var (employees, totalRecords) = await _repository.GetEmployeesPagedAsync(request);
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize);
+
+        return new PagedResponse<EmployeeDto>
+        {
+            Data = _mapper.ToDto(employees),
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalPages
+        };
     }
 }
