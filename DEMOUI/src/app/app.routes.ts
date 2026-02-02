@@ -7,6 +7,10 @@ import { EmployeeListComponent } from './employees/employee-list/employee-list';
 
 import { AddEmployeeComponent } from './employees/add-employee/add-employee';
 import { EditEmployeeComponent } from './employees/edit-employee/edit-employee';
+import { ProjectListComponent } from './projects/project-list/project-list';
+import { ProjectViewComponent } from './projects/project-view/project-view';
+import { AddProjectComponent } from './projects/add-project/add-project';
+import { EditProjectComponent } from './projects/edit-project/edit-project';
 
 
 export const routes: Routes = [
@@ -26,6 +30,10 @@ export const routes: Routes = [
       },
       { path: 'employees/add', component: AddEmployeeComponent },
       { path: 'employees/edit/:id', component: EditEmployeeComponent },
+      { path: 'projects', component: ProjectListComponent },
+      { path: 'projects/add', component: AddProjectComponent },
+      { path: 'projects/edit/:id', component: EditProjectComponent },
+      { path: 'projects/:id', component: ProjectViewComponent },
     ] 
   },
   

@@ -1,0 +1,172 @@
+<div class="edit-project-container">
+  <div class="header">
+    <h2>Edit Project</h2>
+    <a routerLink="/projects" class="btn btn-back">← Back to Projects</a>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading project details...
+  </div>
+
+  <div *ngIf="error && !loading" class="error">
+    {{ error }}
+  </div>
+
+  <form *ngIf="!loading" (ngSubmit)="onSubmit()" class="project-form">
+    <div class="form-group">
+      <label for="projectName">Project Name <span class="required">*</span></label>
+      <input
+        type="text"
+        id="projectName"
+        name="projectName"
+        [(ngModel)]="project.projectName"
+        [disabled]="saving"
+        class="form-control"
+        required
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="description">Description <span class="required">*</span></label>
+      <textarea
+        id="description"
+        name="description"
+        [(ngModel)]="project.description"
+        [disabled]="saving"
+        class="form-control"
+        rows="4"
+        required
+      ></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="startDate">Start Date <span class="required">*</span></label>
+        <input
+          type="date"
+          id="startDate"
+          name="startDate"
+          [(ngModel)]="project.startDate"
+          [disabled]="saving"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="endDate">End Date</label>
+        <input
+          type="date"
+          id="endDate"
+          name="endDate"
+          [(ngModel)]="project.endDate"
+          [disabled]="saving"
+          class="form-control"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="status">Status <span class="required">*</span></label>
+      <select
+        id="status"
+        name="status"
+        [(ngModel)]="project.status"
+        [disabled]="saving"
+        class="form-control"
+        required
+      >
+        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+
+    <div class="button-group">
+      <button type="submit" class="btn btn-primary" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="saving">
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <!-- Assign Employees Section -->
+  <div *ngIf="!loading" class="assign-section">
+    <h3>Assign Employees</h3>
+    
+    <div class="assign-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="employeeSelect">Select Employee</label>
+          <select
+            id="employeeSelect"
+            [(ngModel)]="selectedEmployeeId"
+            class="form-control"
+          >
+            <option [value]="0">-- Select Employee --</option>
+            <option *ngFor="let emp of availableEmployees" [value]="emp.id">
+              {{ emp.name }} (ID: {{ emp.id }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="roleInput">Role (Optional)</label>
+          <input
+            type="text"
+            id="roleInput"
+            [(ngModel)]="assignRole"
+            placeholder="e.g., Developer, Manager"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>&nbsp;</label>
+          <button type="button" class="btn btn-success" (click)="assignEmployee()">
+            Assign
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Employees List -->
+    <div class="assigned-list">
+      <h4>Currently Assigned ({{ assignedEmployees.length }})</h4>
+      
+      <div *ngIf="assignedEmployees.length === 0" class="no-employees">
+        No employees assigned yet.
+      </div>
+
+      <div *ngIf="assignedEmployees.length > 0" class="employees-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Assigned Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of assignedEmployees">
+              <td>{{ emp.employeeId }}</td>
+              <td>{{ emp.employeeName }}</td>
+              <td>{{ emp.role || 'N/A' }}</td>
+              <td>{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
+              <td>
+                <button 
+                  type="button" 
+                  class="btn btn-danger btn-sm" 
+                  (click)="removeEmployee(emp.employeeId)">
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

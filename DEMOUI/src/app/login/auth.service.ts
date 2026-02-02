@@ -33,9 +33,27 @@ export class AuthService {
     return null;
   }
 
+  getUserRole(): string | null {
+    if (isPlatformBrowser(this.platformId)) {
+      return localStorage.getItem('userRole');
+    }
+    return null;
+  }
+
+  isHROrAdmin(): boolean {
+    const role = this.getUserRole();
+    return role === 'HR' || role === 'Admin';
+  }
+
+  isEmployee(): boolean {
+    const role = this.getUserRole();
+    return role === 'Employee';
+  }
+
   logout() {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
     }
   }
 }

@@ -1,0 +1,113 @@
+<div class="project-view-container">
+  <div *ngIf="loading" class="loading">
+    Loading project details...
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+    <button class="btn btn-back" (click)="goBack()">Back to Projects</button>
+  </div>
+
+  <div *ngIf="!loading && !error && project" class="project-details">
+    <div class="header">
+      <h2>{{ project.projectName }}</h2>
+      <button class="btn btn-back" (click)="goBack()">← Back to Projects</button>
+    </div>
+
+    <div class="details-card">
+      <div class="detail-row">
+        <span class="label">Project ID:</span>
+        <span class="value">{{ project.projectId }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">Project Name:</span>
+        <span class="value">{{ project.projectName }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">Description:</span>
+        <span class="value description">{{ project.description }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">Status:</span>
+        <span class="value">
+          <span class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+            {{ project.status }}
+          </span>
+        </span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">Start Date:</span>
+        <span class="value">{{ project.startDate | date: 'MMMM d, yyyy' }}</span>
+      </div>
+
+      <div class="detail-row">
+        <span class="label">End Date:</span>
+        <span class="value">{{ project.endDate ? (project.endDate | date: 'MMMM d, yyyy') : 'Not set' }}</span>
+      </div>
+    </div>
+
+    <!-- Assigned Employees Section -->
+    <div class="employees-section">
+      <div class="section-header">
+        <h3>Assigned Employees</h3>
+        <button *ngIf="canEdit" class="btn btn-primary" (click)="toggleAssignForm()">
+          {{ showAssignForm ? 'Cancel' : '+ Assign Employee' }}
+        </button>
+      </div>
+
+      <!-- Assign Form -->
+      <div *ngIf="showAssignForm && canEdit" class="assign-form">
+        <select 
+          [(ngModel)]="selectedEmployeeId" 
+          class="form-select">
+          <option [value]="0">-- Select Employee --</option>
+          <option *ngFor="let emp of availableEmployees" [value]="emp.id">
+            {{ emp.name }} (ID: {{ emp.id }})
+          </option>
+        </select>
+        <input 
+          type="text" 
+          [(ngModel)]="assignRole" 
+          placeholder="Role (optional)"
+          class="form-input">
+        <button class="btn btn-success" (click)="assignEmployee()">Assign</button>
+      </div>
+
+      <!-- Employees List -->
+      <div *ngIf="assignedEmployees.length > 0" class="employees-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Employee Name</th>
+              <th>Role</th>
+              <th>Assigned Date</th>
+              <th *ngIf="canEdit">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of assignedEmployees">
+              <td>{{ emp.employeeId }}</td>
+              <td>{{ emp.employeeName }}</td>
+              <td>{{ emp.role || 'N/A' }}</td>
+              <td>{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
+              <td *ngIf="canEdit">
+                <button class="btn btn-danger btn-sm" (click)="removeEmployee(emp.employeeId)">
+                  Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="assignedEmployees.length === 0" class="no-employees">
+        No employees assigned to this project.
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using EmployeeApi.DTOs;
 
 namespace EmployeeApi.Models
 {
@@ -16,6 +17,8 @@ namespace EmployeeApi.Models
         // Tables
         public virtual DbSet<Employee> Employees { get; set; }
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Project> Projects { get; set; }
+        public virtual DbSet<EmployeeProject> EmployeeProjects { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -51,6 +54,34 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.Password).HasMaxLength(200).IsRequired();
             });
+
+            // PROJECTS
+            modelBuilder.Entity<Project>(entity =>
+            {
+                entity.ToTable("Projects");
+
+                entity.HasKey(e => e.ProjectId);
+
+                entity.Property(e => e.ProjectName).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.Description).IsRequired();
+                entity.Property(e => e.StartDate).IsRequired();
+                entity.Property(e => e.EndDate);
+                entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
+            });
+
+            // EMPLOYEE PROJECTS
+            modelBuilder.Entity<EmployeeProject>(entity =>
+            {
+                entity.ToTable("EmployeeProjects");
+
+                entity.HasKey(e => e.EmployeeProjectId);
+
+                entity.Property(e => e.AssignedDate).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(100);
+            });
+
+            // Keyless entity for stored procedure results
+            modelBuilder.Entity<EmployeeProjectDto>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
         }

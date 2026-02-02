@@ -24,6 +24,12 @@
         class="btn-add">
         Add Employee
       </button>
+      <button 
+        [routerLink]="['/projects']" 
+        [disabled]="loading" 
+        class="btn-projects">
+        Projects
+      </button>
       <button (click)="refreshEmployees()" [disabled]="loading" class="btn-refresh">
         ↻ Refresh
       </button>

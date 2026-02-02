@@ -136,6 +136,14 @@ button:disabled {
   background-color: #059669;
 }
 
+.btn-projects {
+  background-color: #8b5cf6;
+}
+
+.btn-projects:hover:not(:disabled) {
+  background-color: #7c3aed;
+}
+
 .btn-refresh {
   background-color: #0ea5e9;
   padding: 10px 16px;

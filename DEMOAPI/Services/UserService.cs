@@ -60,6 +60,7 @@ namespace EmployeeApi.Services
             };
         }
 
+        //JWT
         private string GenerateJwtToken(User user)
         {
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);

@@ -1,4 +1,3 @@
--- Create stored procedure for paginated, sorted, and filtered employee results
 CREATE OR ALTER PROCEDURE sp_GetEmployeesPaged
     @PageNumber INT = 1,
     @PageSize INT = 10,

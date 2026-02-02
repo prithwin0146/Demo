@@ -16,12 +16,15 @@ builder.Services.AddDbContext<TaskDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IEmployeeProjectRepository, EmployeeProjectRepository>();
 
 // Services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
 builder.Services.AddScoped<IEmployeeMapper, EmployeeMapper>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 
 // Controllers
 builder.Services.AddControllers();

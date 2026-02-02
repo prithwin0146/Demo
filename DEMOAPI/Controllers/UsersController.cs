@@ -62,7 +62,12 @@ namespace EmployeeApi.Controllers
 
            
             var token = GenerateJwtToken(existingUser);
-            return Ok(new { token });
+            return Ok(new { 
+                token, 
+                role = existingUser.Role ?? "Employee",
+                username = existingUser.Username,
+                email = existingUser.Email
+            });
         }
         // JWT
         private string GenerateJwtToken(User user)

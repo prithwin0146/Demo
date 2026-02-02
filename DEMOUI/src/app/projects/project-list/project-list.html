@@ -1,0 +1,53 @@
+<div class="project-list-container">
+  <div class="header">
+    <h2>Projects</h2>
+    <div class="header-buttons">
+      <a *ngIf="canEdit" routerLink="/projects/add" class="btn btn-add">+ Add Project</a>
+      <a routerLink="/employees" class="btn btn-back">← Back to Employees</a>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Loading projects...
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && !error" class="table-container">
+    <table class="project-table">
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Status</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td>{{ project.projectName }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+              {{ project.status }}
+            </span>
+          </td>
+          <td>{{ project.startDate | date: 'MM/dd/yyyy' }}</td>
+          <td>{{ project.endDate ? (project.endDate | date: 'MM/dd/yyyy') : 'N/A' }}</td>
+          <td>
+            <div class="action-buttons">
+              <a [routerLink]="['/projects', project.projectId]" class="btn btn-view">View</a>
+              <a *ngIf="canEdit" [routerLink]="['/projects/edit', project.projectId]" class="btn btn-edit">Edit</a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="projects.length === 0" class="no-data">
+      No projects found.
+    </div>
+  </div>
+</div>

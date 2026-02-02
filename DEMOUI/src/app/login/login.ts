@@ -38,8 +38,12 @@ export class Login {
     this.auth.login(this.email, this.password).subscribe({
       next: (res: any) => {
         console.log('Login successful');
+        console.log('Login response:', res);
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('token', res.token);
+          const userRole = res.role || 'Employee';
+          localStorage.setItem('userRole', userRole);
+          console.log('Stored userRole:', userRole);
         }
         this.router.navigate(['/employees']);
       },
