@@ -25,9 +25,11 @@ namespace EmployeeApi.Controllers
 
         // GET paginated employees with stored procedure
         [HttpGet("paged")]
-        public async Task<ActionResult<PagedResponse<EmployeeDto>>> GetPaged([FromQuery] PaginationRequest request)
+        public async Task<ActionResult<PagedResponse<EmployeeDto>>> GetPaged(
+            [FromQuery] PaginationRequest request,
+            [FromQuery] int? departmentId = null)
         {
-            return await _employeeService.GetEmployeesPagedAsync(request);
+            return await _employeeService.GetEmployeesPagedAsync(request, departmentId);
         }
 
         // GET employee by id

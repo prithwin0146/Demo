@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
 import { EmployeeService } from '../employee.service';
+import { DepartmentService } from '../../departments/department.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -18,10 +19,12 @@ export class EditEmployeeComponent implements OnInit {
   email = '';
   jobRole = '';
   systemRole = 'Employee';
+  departmentId: number | null = null;
   error: string | null = null;
   
   currentUserRole = '';
   isAdmin = false;
+  departments: any[] = [];
   
   jobRoles = [
     'Software Engineer',
@@ -42,6 +45,7 @@ export class EditEmployeeComponent implements OnInit {
 
   constructor(
     private empService: EmployeeService,
+    private departmentService: DepartmentService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -50,6 +54,7 @@ export class EditEmployeeComponent implements OnInit {
 
   ngOnInit(): void {
     this.detectUserRole();
+    this.loadDepartments();
     this.id = Number(this.route.snapshot.paramMap.get('id'));
     this.empService.getEmployee(this.id).subscribe({
       next: (emp) => {
@@ -57,11 +62,24 @@ export class EditEmployeeComponent implements OnInit {
         this.email = emp.email;
         this.jobRole = emp.jobRole || '';
         this.systemRole = emp.systemRole || 'Employee';
+        this.departmentId = emp.departmentId || null;
         this.cdr.markForCheck();
       },
       error: (err) => {
         this.error = err.error?.message || 'Employee not found';
         this.cdr.markForCheck();
+      }
+    });
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (data) => {
+        this.departments = data;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error loading departments:', err);
       }
     });
   }
@@ -99,7 +117,8 @@ export class EditEmployeeComponent implements OnInit {
       name: this.name, 
       email: this.email, 
       jobRole: this.jobRole,
-      systemRole: this.systemRole
+      systemRole: this.systemRole,
+      departmentId: this.departmentId
     };
 
     this.error = null;

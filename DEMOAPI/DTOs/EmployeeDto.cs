@@ -18,4 +18,10 @@ public class EmployeeDto
     
     [JsonPropertyName("systemRole")]
     public string SystemRole { get; set; } = null!;
+
+    [JsonPropertyName("departmentId")]
+    public int? DepartmentId { get; set; }
+
+    [JsonPropertyName("departmentName")]
+    public string? DepartmentName { get; set; }
 }

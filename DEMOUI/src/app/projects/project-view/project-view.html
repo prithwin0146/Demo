@@ -11,7 +11,10 @@
   <div *ngIf="!loading && !error && project" class="project-details">
     <div class="header">
       <h2>{{ project.projectName }}</h2>
-      <button class="btn btn-back" (click)="goBack()">← Back to Projects</button>
+      <div class="header-buttons">
+        <button *ngIf="canEdit" class="btn btn-delete" (click)="deleteProject()">Delete Project</button>
+        <button class="btn btn-back" (click)="goBack()">← Back to Projects</button>
+      </div>
     </div>
 
     <div class="details-card">
@@ -33,15 +36,16 @@
       <div class="detail-row">
         <span class="label">Status:</span>
         <span class="value">
-          <span class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+          <span *ngIf="project.status" class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
             {{ project.status }}
           </span>
+          <span *ngIf="!project.status">N/A</span>
         </span>
       </div>
 
       <div class="detail-row">
         <span class="label">Start Date:</span>
-        <span class="value">{{ project.startDate | date: 'MMMM d, yyyy' }}</span>
+        <span class="value">{{ project.startDate ? (project.startDate | date: 'MMMM d, yyyy') : 'Not set' }}</span>
       </div>
 
       <div class="detail-row">
@@ -62,17 +66,19 @@
       <!-- Assign Form -->
       <div *ngIf="showAssignForm && canEdit" class="assign-form">
         <select 
-          [(ngModel)]="selectedEmployeeId" 
+          [(ngModel)]="selectedEmployeeId"
+          (ngModelChange)="onEmployeeSelect()" 
           class="form-select">
           <option [value]="0">-- Select Employee --</option>
           <option *ngFor="let emp of availableEmployees" [value]="emp.id">
-            {{ emp.name }} (ID: {{ emp.id }})
+            {{ emp.name }} - {{ emp.jobRole }}
           </option>
         </select>
         <input 
           type="text" 
           [(ngModel)]="assignRole" 
-          placeholder="Role (optional)"
+          placeholder="Role (auto-filled from employee)"
+          readonly
           class="form-input">
         <button class="btn btn-success" (click)="assignEmployee()">Assign</button>
       </div>
@@ -90,7 +96,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let emp of assignedEmployees">
+            <tr *ngFor="let emp of displayedEmployees">
               <td>{{ emp.employeeId }}</td>
               <td>{{ emp.employeeName }}</td>
               <td>{{ emp.role || 'N/A' }}</td>
@@ -103,10 +109,64 @@
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination Controls -->
+        <div *ngIf="assignedEmployees.length > pageSize" class="pagination-container">
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, assignedEmployees.length) }} of {{ assignedEmployees.length }} employees
+          </div>
+
+          <div class="pagination-controls">
+            <div class="pagination-buttons">
+              <button 
+                (click)="goToPage(1)" 
+                [disabled]="currentPage === 1"
+                class="btn-page">
+                ⟨⟨
+              </button>
+              
+              <button 
+                (click)="previousPage()" 
+                [disabled]="currentPage === 1"
+                class="btn-page">
+                ⟨
+              </button>
+              
+              <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+              
+              <button 
+                (click)="nextPage()" 
+                [disabled]="currentPage === totalPages"
+                class="btn-page">
+                ⟩
+              </button>
+              
+              <button 
+                (click)="goToPage(totalPages)" 
+                [disabled]="currentPage === totalPages"
+                class="btn-page">
+                ⟩⟩
+              </button>
+            </div>
+
+            <div class="pagination-size">
+              <label class="page-size-label">Rows:</label>
+              <select 
+                (change)="changePageSize(+$any($event.target).value)" 
+                [value]="pageSize" 
+                class="page-size-select">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="assignedEmployees.length === 0" class="no-employees">
-        No employees assigned to this project.
+        No employees assigned yet.
       </div>
     </div>
   </div>

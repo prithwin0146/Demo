@@ -7,6 +7,17 @@
     </div>
   </div>
 
+  <!-- Search Bar -->
+  <div class="search-container">
+    <input 
+      type="text" 
+      placeholder="Search projects..." 
+      (input)="onSearch($event)"
+      [value]="searchTerm"
+      class="search-input"
+    />
+  </div>
+
   <div *ngIf="loading" class="loading">
     Loading projects...
   </div>
@@ -19,9 +30,19 @@
     <table class="project-table">
       <thead>
         <tr>
-          <th>Project Name</th>
+          <th (click)="sort('ProjectName')" class="sortable">
+            Project Name
+            <span class="sort-indicator" *ngIf="sortBy === 'ProjectName'">
+              {{ sortOrder === 'ASC' ? '↑' : '↓' }}
+            </span>
+          </th>
           <th>Status</th>
-          <th>Start Date</th>
+          <th (click)="sort('StartDate')" class="sortable">
+            Start Date
+            <span class="sort-indicator" *ngIf="sortBy === 'StartDate'">
+              {{ sortOrder === 'ASC' ? '↑' : '↓' }}
+            </span>
+          </th>
           <th>End Date</th>
           <th>Actions</th>
         </tr>
@@ -30,8 +51,11 @@
         <tr *ngFor="let project of projects">
           <td>{{ project.projectName }}</td>
           <td>
-            <span class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+            <span *ngIf="project.status" class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
               {{ project.status }}
+            </span>
+            <span *ngIf="!project.status" class="status-badge status-unknown">
+              N/A
             </span>
           </td>
           <td>{{ project.startDate | date: 'MM/dd/yyyy' }}</td>
@@ -48,6 +72,65 @@
 
     <div *ngIf="projects.length === 0" class="no-data">
       No projects found.
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="totalRecords > 0" class="pagination-container">
+      <div class="pagination-info">
+        Showing {{ (pageNumber - 1) * pageSize + 1 }} to {{ Math.min(pageNumber * pageSize, totalRecords) }} of {{ totalRecords }} projects
+      </div>
+
+      <div class="pagination-controls">
+        <div class="pagination-buttons">
+          <button 
+            (click)="firstPage()" 
+            [disabled]="pageNumber === 1"
+            class="btn-page btn-first"
+            title="First Page">
+            <span class="page-icon">⟨⟨</span>
+          </button>
+          
+          <button 
+            (click)="previousPage()" 
+            [disabled]="pageNumber === 1"
+            class="btn-page btn-prev"
+            title="Previous Page">
+            <span class="page-icon">⟨</span>
+          </button>
+          
+          <span class="page-info">Page {{ pageNumber }} of {{ totalPages }}</span>
+          
+          <button 
+            (click)="nextPage()" 
+            [disabled]="pageNumber === totalPages"
+            class="btn-page btn-next"
+            title="Next Page">
+            <span class="page-icon">⟩</span>
+          </button>
+          
+          <button 
+            (click)="lastPage()" 
+            [disabled]="pageNumber === totalPages"
+            class="btn-page btn-last"
+            title="Last Page">
+            <span class="page-icon">⟩⟩</span>
+          </button>
+        </div>
+
+        <div class="pagination-size">
+          <label for="pageSize" class="page-size-label">Rows per page:</label>
+          <select 
+            id="pageSize"
+            (change)="changePageSize(+$any($event.target).value)" 
+            [value]="pageSize" 
+            class="page-size-select">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+      </div>
     </div>
   </div>
 </div>

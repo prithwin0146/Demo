@@ -19,6 +19,7 @@ namespace EmployeeApi.Models
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Project> Projects { get; set; }
         public virtual DbSet<EmployeeProject> EmployeeProjects { get; set; }
+        public virtual DbSet<Department> Departments { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -41,6 +42,7 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.Email).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.JobRole).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Employee");
+                entity.Property(e => e.DepartmentId);
             });
 
             // USERS 
@@ -70,6 +72,7 @@ namespace EmployeeApi.Models
             });
 
             // EMPLOYEE PROJECTS
+            // EMPLOYEE PROJECTS
             modelBuilder.Entity<EmployeeProject>(entity =>
             {
                 entity.ToTable("EmployeeProjects");
@@ -80,6 +83,19 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.Role).HasMaxLength(100);
             });
 
+            // DEPARTMENTS
+            modelBuilder.Entity<Department>(entity =>
+            {
+                entity.ToTable("Departments");
+
+                entity.HasKey(e => e.DepartmentId);
+
+                entity.Property(e => e.DepartmentName).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.Property(e => e.ManagerId);
+            });
+
+            // 
             // Keyless entity for stored procedure results
             modelBuilder.Entity<EmployeeProjectDto>().HasNoKey();
 

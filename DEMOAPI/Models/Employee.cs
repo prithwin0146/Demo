@@ -14,4 +14,6 @@ public partial class Employee
     public string JobRole { get; set; } = null!;
 
     public string Role { get; set; } = "Employee";
+
+    public int? DepartmentId { get; set; }
 }

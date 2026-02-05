@@ -19,12 +19,12 @@ export class AddProjectComponent implements OnInit {
     description: '',
     startDate: '',
     endDate: null,
-    status: 'Pending'
+    status: 'Active'
   };
 
   loading = false;
   error: string | null = null;
-  statuses = ['Pending', 'Active', 'Completed', 'On-Hold'];
+  statuses = ['Active', 'Completed', 'On-Hold'];
 
   constructor(
     private projectService: ProjectService,

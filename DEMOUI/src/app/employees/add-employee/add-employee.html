@@ -69,6 +69,20 @@
         <small class="form-text" *ngIf="!canEditSystemRole">Only Admin and HR can edit system roles</small>
       </div>
 
+      <!-- Department Field -->
+      <div class="form-group">
+        <label for="departmentId">Department:</label>
+        <select
+          id="departmentId"
+          name="departmentId"
+          [(ngModel)]="departmentId"
+          class="form-control"
+        >
+          <option [ngValue]="null">-- No Department --</option>
+          <option *ngFor="let dept of departments" [ngValue]="dept.departmentId">{{ dept.departmentName }}</option>
+        </select>
+      </div>
+
       <!-- Password Field -->
       <div class="form-group">
         <label for="password">Password:</label>

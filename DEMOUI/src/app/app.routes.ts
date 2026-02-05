@@ -11,6 +11,10 @@ import { ProjectListComponent } from './projects/project-list/project-list';
 import { ProjectViewComponent } from './projects/project-view/project-view';
 import { AddProjectComponent } from './projects/add-project/add-project';
 import { EditProjectComponent } from './projects/edit-project/edit-project';
+import { DepartmentListComponent } from './departments/department-list/department-list';
+import { AddDepartmentComponent } from './departments/add-department/add-department';
+import { EditDepartmentComponent } from './departments/edit-department/edit-department';
+import { DepartmentViewComponent } from './departments/department-view/department-view';
 
 
 export const routes: Routes = [
@@ -34,6 +38,10 @@ export const routes: Routes = [
       { path: 'projects/add', component: AddProjectComponent },
       { path: 'projects/edit/:id', component: EditProjectComponent },
       { path: 'projects/:id', component: ProjectViewComponent },
+      { path: 'departments', component: DepartmentListComponent },
+      { path: 'departments/add', component: AddDepartmentComponent },
+      { path: 'departments/edit/:id', component: EditDepartmentComponent },
+      { path: 'departments/:id', component: DepartmentViewComponent },
     ] 
   },
   

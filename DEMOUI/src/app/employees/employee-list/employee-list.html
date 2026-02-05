@@ -30,6 +30,12 @@
         class="btn-projects">
         Projects
       </button>
+      <button 
+        [routerLink]="['/departments']" 
+        [disabled]="loading" 
+        class="btn-projects">
+        Departments
+      </button>
       <button (click)="refreshEmployees()" [disabled]="loading" class="btn-refresh">
         ↻ Refresh
       </button>
@@ -56,16 +62,16 @@
         <thead>
           <tr>
             <th (click)="sortColumn('Id')" class="sortable">
-              ID {{ sortBy === 'Id' ? (ascending ? '▲' : '▼') : '' }}
+              ID {{ sortBy === 'Id' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
             </th>
             <th (click)="sortColumn('Name')" class="sortable">
-              NAME {{ sortBy === 'Name' ? (ascending ? '▲' : '▼') : '' }}
+              NAME {{ sortBy === 'Name' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
             </th>
             <th (click)="sortColumn('Email')" class="sortable">
-              EMAIL {{ sortBy === 'Email' ? (ascending ? '▲' : '▼') : '' }}
+              EMAIL {{ sortBy === 'Email' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
             </th>
             <th (click)="sortColumn('JobRole')" class="sortable">
-              JOB ROLE {{ sortBy === 'JobRole' ? (ascending ? '▲' : '▼') : '' }}
+              JOB ROLE {{ sortBy === 'JobRole' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
             </th>
             <th *ngIf="isAdmin">SYSTEM ROLE</th>
             <th>ACTIONS</th>

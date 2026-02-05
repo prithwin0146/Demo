@@ -1,0 +1,76 @@
+<div class="container">
+  <h1>Department Management</h1>
+
+  <!-- Loader -->
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Loading departments...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="error-alert">
+    <strong>Error:</strong> {{ error }}
+    <button (click)="dismissError()" class="btn-close">✕</button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading" class="content">
+    
+    <div class="button-group">
+      <button 
+        *ngIf="isAdmin || isHR" 
+        [routerLink]="['/departments/add']" 
+        class="btn-add">
+        Add Department
+      </button>
+      <button 
+        [routerLink]="['/employees']" 
+        class="btn-projects">
+        Employees
+      </button>
+      <button 
+        [routerLink]="['/projects']" 
+        class="btn-projects">
+        Projects
+      </button>
+      <button (click)="logout()" class="btn-logout">
+        Logout
+      </button>
+    </div>
+
+    <!-- Department Table -->
+    <div *ngIf="departments && departments.length > 0; else noDepartments" class="table-container">
+      <table class="employee-table">
+        <thead>
+          <tr>
+            <th>DEPARTMENT NAME</th>
+            <th>DESCRIPTION</th>
+            <th>MANAGER</th>
+            <th>EMPLOYEES</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dept of departments">
+            <td>{{ dept.departmentName }}</td>
+            <td>{{ dept.description || 'N/A' }}</td>
+            <td>{{ dept.managerName || 'No Manager' }}</td>
+            <td>{{ dept.employeeCount }}</td>
+            <td class="actions">
+              <button (click)="viewDepartment(dept.departmentId)" class="btn-view">View</button>
+              <button *ngIf="isAdmin || isHR" (click)="editDepartment(dept.departmentId)" class="btn-edit">Edit</button>
+              <button *ngIf="isAdmin" (click)="deleteDepartment(dept)" class="btn-delete">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- No Departments Message -->
+    <ng-template #noDepartments>
+      <div class="no-data">
+        <p>No departments found.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

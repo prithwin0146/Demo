@@ -11,5 +11,5 @@ public interface IEmployeeRepository
     Task<Employee> AddWithPasswordAsync(Employee emp, string password);
     Task<Employee> UpdateAsync(Employee emp);
     Task<Employee> DeleteAsync(Employee emp);
-    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request);
+    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null);
 }

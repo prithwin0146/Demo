@@ -1,4 +1,5 @@
 using EmployeeApi.Models;
+using EmployeeApi.DTOs;
 using EmployeeApi.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -16,14 +17,12 @@ public class ProjectRepository : IProjectRepository
 
     public async Task<List<Project>> GetAllAsync()
     {
-        return await _context.LoadStoredProc<Project>("GetAllProjects");
+        return await _context.Projects.ToListAsync();
     }
 
     public async Task<Project?> GetByIdAsync(int id)
     {
-        return await _context.LoadStoredProcSingle<Project>(
-            "GetProjectById",
-            new SqlParameter("@ProjectId", id));
+        return await _context.Projects.FindAsync(id);
     }
 
     public async Task<int> CreateAsync(Project project)
@@ -46,5 +45,30 @@ public class ProjectRepository : IProjectRepository
 
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var project = await _context.Projects.FindAsync(id);
+        if (project == null) return false;
+
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<(List<ProjectPagedResult> Data, int TotalCount)> GetProjectsPagedAsync(PaginationRequest request)
+    {
+        var results = await _context.LoadStoredProc<ProjectPagedResult>(
+            "sp_GetProjectsPaged",
+            new SqlParameter("@PageNumber", request.PageNumber),
+            new SqlParameter("@PageSize", request.PageSize),
+            new SqlParameter("@SortBy", request.SortBy ?? "ProjectName"),
+            new SqlParameter("@SortOrder", request.Ascending ? "ASC" : "DESC"),
+            new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
+
+        var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
+
+        return (results.ToList(), totalRecords);
     }
 }

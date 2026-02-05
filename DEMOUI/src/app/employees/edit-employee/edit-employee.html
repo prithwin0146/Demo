@@ -69,6 +69,20 @@
         <small class="form-text" *ngIf="!isAdmin">Only Admin can edit system roles</small>
       </div>
 
+      <!-- Department Field -->
+      <div class="form-group">
+        <label for="departmentId">Department:</label>
+        <select
+          id="departmentId"
+          name="departmentId"
+          [(ngModel)]="departmentId"
+          class="form-control"
+        >
+          <option [ngValue]="null">-- No Department --</option>
+          <option *ngFor="let dept of departments" [ngValue]="dept.departmentId">{{ dept.departmentName }}</option>
+        </select>
+      </div>
+
       <!-- Buttons -->
       <div class="button-group">
         <button type="submit" class="btn-submit">Update Employee</button>

@@ -1,5 +1,6 @@
 import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { EmployeeService } from '../employee.service';
+import { DepartmentService } from '../../departments/department.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,10 +20,12 @@ export class AddEmployeeComponent implements OnInit {
   systemRole = 'Employee';
   password = '';
   confirmPassword = '';
+  departmentId: number | null = null;
   error: string | null = null;
   
   currentUserRole = '';
   canEditSystemRole = false;
+  departments: any[] = [];
   
   jobRoles = [
     'Software Engineer',
@@ -43,17 +46,30 @@ export class AddEmployeeComponent implements OnInit {
 
   constructor(
     private empService: EmployeeService,
+    private departmentService: DepartmentService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
     this.detectUserRole();
+    this.loadDepartments();
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (data) => {
+        this.departments = data;
+      },
+      error: (err) => {
+        console.error('Error loading departments:', err);
+      }
+    });
   }
 
   detectUserRole(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const token = localStorage.getItem('token');
+      const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : null;
       if (token) {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
@@ -95,7 +111,8 @@ export class AddEmployeeComponent implements OnInit {
       email: this.email,
       jobRole: this.jobRole,
       systemRole: this.systemRole,
-      password: this.password
+      password: this.password,
+      departmentId: this.departmentId
     };
 
     this.error = null;

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { PagedResponse } from '../shared/pagination.models';
 
 @Injectable({
   providedIn: 'root',
@@ -65,18 +66,28 @@ export class EmployeeService {
   }
 
   // Paginated employees using stored procedure
-  getEmployeesPaged(pageNumber: number = 1, pageSize: number = 10, sortBy: string = 'Id', ascending: boolean = true, searchTerm: string = '') {
-    const params: any = {
-      PageNumber: pageNumber,
-      PageSize: pageSize,
-      SortBy: sortBy,
-      Ascending: ascending
-    };
-    
+  getEmployeesPaged(
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    sortBy: string = 'Id',
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    searchTerm: string = '',
+    departmentId?: number
+  ): Observable<PagedResponse<any>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString())
+      .set('sortBy', sortBy)
+      .set('sortOrder', sortOrder);
+
     if (searchTerm) {
-      params.SearchTerm = searchTerm;
+      params = params.set('searchTerm', searchTerm);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/paged`, { params });
+    if (departmentId !== undefined && departmentId !== null) {
+      params = params.set('departmentId', departmentId.toString());
+    }
+
+    return this.http.get<PagedResponse<any>>(`${this.apiUrl}/paged`, { params });
   }
 }

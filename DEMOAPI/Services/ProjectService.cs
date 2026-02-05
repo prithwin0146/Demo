@@ -70,4 +70,35 @@ public class ProjectService : IProjectService
 
         return await _repository.UpdateAsync(id, project);
     }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        return await _repository.DeleteAsync(id);
+    }
+
+    public async Task<PagedResponse<ProjectDto>> GetProjectsPagedAsync(PaginationRequest request)
+    {
+        var (projects, totalRecords) = await _repository.GetProjectsPagedAsync(request);
+        var totalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize);
+
+        var projectDtos = projects.Select(p => new ProjectDto
+        {
+            ProjectId = p.ProjectId,
+            ProjectName = p.ProjectName,
+            Description = p.Description,
+            StartDate = p.StartDate,
+            EndDate = p.EndDate,
+            Status = p.Status,
+            AssignedEmployees = p.AssignedEmployees
+        }).ToList();
+
+        return new PagedResponse<ProjectDto>
+        {
+            Data = projectDtos,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalRecords = totalRecords,
+            TotalPages = totalPages
+        };
+    }
 }

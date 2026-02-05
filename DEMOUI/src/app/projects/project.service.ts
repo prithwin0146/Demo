@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Project, CreateProject, UpdateProject } from './project.models';
+import { PagedResponse } from '../shared/pagination.models';
 
 @Injectable({
   providedIn: 'root',
@@ -25,5 +26,29 @@ export class ProjectService {
 
   updateProject(id: number, project: UpdateProject): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, project);
+  }
+
+  deleteProject(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  getProjectsPaged(
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    sortBy: string = 'ProjectName',
+    sortOrder: 'ASC' | 'DESC' = 'ASC',
+    searchTerm: string = ''
+  ): Observable<PagedResponse<Project>> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString())
+      .set('sortBy', sortBy)
+      .set('sortOrder', sortOrder);
+
+    if (searchTerm) {
+      params = params.set('searchTerm', searchTerm);
+    }
+
+    return this.http.get<PagedResponse<Project>>(`${this.apiUrl}/paged`, { params });
   }
 }

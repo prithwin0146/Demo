@@ -8,4 +8,6 @@ public interface IProjectService
     Task<ProjectDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateProjectDto createDto);
     Task<bool> UpdateAsync(int id, UpdateProjectDto updateDto);
+    Task<bool> DeleteAsync(int id);
+    Task<PagedResponse<ProjectDto>> GetProjectsPagedAsync(PaginationRequest request);
 }

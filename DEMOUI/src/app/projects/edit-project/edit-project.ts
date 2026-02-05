@@ -23,14 +23,14 @@ export class EditProjectComponent implements OnInit {
     description: '',
     startDate: '',
     endDate: null,
-    status: 'Pending'
+    status: 'Active'
   };
 
   projectId!: number;
   loading = true;
   saving = false;
   error: string | null = null;
-  statuses = ['Pending', 'Active', 'Completed', 'On-Hold'];
+  statuses = ['Active', 'Completed', 'On-Hold'];
 
   employees: Employee[] = [];
   assignedEmployees: EmployeeProjectDto[] = [];
@@ -183,6 +183,17 @@ export class EditProjectComponent implements OnInit {
     this.availableEmployees = this.employees.filter(e => !assignedIds.includes(e.id));
   }
 
+  onEmployeeSelect(): void {
+    if (this.selectedEmployeeId > 0) {
+      const selectedEmployee = this.employees.find(emp => emp.id === this.selectedEmployeeId);
+      if (selectedEmployee) {
+        this.assignRole = selectedEmployee.jobRole;
+      }
+    } else {
+      this.assignRole = '';
+    }
+  }
+
   assignEmployee(): void {
     if (this.selectedEmployeeId <= 0) {
       alert('Please select an employee');
@@ -220,6 +231,23 @@ export class EditProjectComponent implements OnInit {
       error: (err) => {
         console.error('Error removing employee:', err);
         alert('Failed to remove employee');
+      }
+    });
+  }
+
+  deleteProject(): void {
+    if (!confirm(`Are you sure you want to delete the project "${this.project.projectName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.projectService.deleteProject(this.projectId).subscribe({
+      next: () => {
+        console.log('Project deleted successfully');
+        this.router.navigate(['/projects']);
+      },
+      error: (err) => {
+        console.error('Error deleting project:', err);
+        alert('Failed to delete project. Please try again.');
       }
     });
   }

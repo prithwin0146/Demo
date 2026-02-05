@@ -15,4 +15,7 @@ public class UpdateEmployeeDto
     
     [JsonPropertyName("systemRole")]
     public string SystemRole { get; set; } = "Employee";
+
+    [JsonPropertyName("departmentId")]
+    public int? DepartmentId { get; set; }
 }

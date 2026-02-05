@@ -1,0 +1,125 @@
+<div class="container">
+  <h1>Department Details</h1>
+
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Loading department...</p>
+  </div>
+
+  <div *ngIf="error" class="error-alert">
+    <strong>Error:</strong> {{ error }}
+  </div>
+
+  <div *ngIf="department && !loading" class="details-container">
+    <div class="detail-row">
+      <span class="label">Department ID:</span>
+      <span class="value">{{ department.departmentId }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Department Name:</span>
+      <span class="value">{{ department.departmentName }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Description:</span>
+      <span class="value">{{ department.description || 'N/A' }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Manager:</span>
+      <span class="value">{{ department.managerName || 'No Manager' }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="label">Number of Employees:</span>
+      <span class="value">{{ department.employeeCount }}</span>
+    </div>
+
+    <div class="button-group">
+      <button [routerLink]="['/departments/edit', department.departmentId]" class="btn-edit">
+        Edit Department
+      </button>
+      <button (click)="goBack()" class="btn-back">
+        Back to List
+      </button>
+    </div>
+
+    <!-- Employee List Section -->
+    <div class="employees-section">
+      <h2>
+        Employees in this Department
+        <span class="employee-count-badge">{{ totalRecords }}</span>
+      </h2>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <input 
+          type="text" 
+          placeholder="Search employees..." 
+          (input)="onSearch($event)"
+          class="search-input"
+        />
+      </div>
+
+      <div *ngIf="loadingEmployees" class="loader-container">
+        <div class="spinner"></div>
+        <p>Loading employees...</p>
+      </div>
+
+      <div *ngIf="!loadingEmployees && employees.length === 0" class="no-employees">
+        <p>No employees found.</p>
+      </div>
+
+      <div *ngIf="!loadingEmployees && employees.length > 0" class="employees-table-container">
+        <table class="employees-table">
+          <thead>
+            <tr>
+              <th (click)="onSort('Id')" class="sortable">
+                Employee ID
+                <span *ngIf="sortBy === 'Id'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
+              </th>
+              <th (click)="onSort('Name')" class="sortable">
+                Name
+                <span *ngIf="sortBy === 'Name'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
+              </th>
+              <th (click)="onSort('Email')" class="sortable">
+                Email
+                <span *ngIf="sortBy === 'Email'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
+              </th>
+              <th>Job Role</th>
+              <th>System Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let employee of employees">
+              <td>{{ employee.id }}</td>
+              <td>{{ employee.name }}</td>
+              <td>{{ employee.email }}</td>
+              <td>{{ employee.jobRole || 'N/A' }}</td>
+              <td>
+                <span class="role-badge" [ngClass]="'role-' + (employee.systemRole || 'employee').toLowerCase()">
+                  {{ employee.systemRole || 'Employee' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls">
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalRecords) }} of {{ totalRecords }} employees
+          </div>
+          <div class="pagination-buttons">
+            <button (click)="onPageChange(1)" [disabled]="currentPage === 1" class="page-btn">First</button>
+            <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="page-btn">Previous</button>
+            <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
+            <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages" class="page-btn">Next</button>
+            <button (click)="onPageChange(totalPages)" [disabled]="currentPage === totalPages" class="page-btn">Last</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

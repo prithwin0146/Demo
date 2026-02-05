@@ -29,7 +29,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   totalRecords = 0;
   totalPages = 0;
   sortBy = 'Id';
-  ascending = true;
+  sortOrder: 'ASC' | 'DESC' = 'ASC';
   searchTerm = '';
 
   // Role-based access
@@ -97,7 +97,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     this.error = null;
     this.retryCount = 0;
     
-    this.employeeService.getEmployeesPaged(this.pageNumber, this.pageSize, this.sortBy, this.ascending, this.searchTerm)
+    this.employeeService.getEmployeesPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm)
       .pipe(
         retryWhen(errors => 
           errors.pipe(
@@ -189,10 +189,10 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
 
   sortColumn(column: string) {
     if (this.sortBy === column) {
-      this.ascending = !this.ascending;
+      this.sortOrder = this.sortOrder === 'ASC' ? 'DESC' : 'ASC';
     } else {
       this.sortBy = column;
-      this.ascending = true;
+      this.sortOrder = 'ASC';
     }
     this.loadEmployees();
   }

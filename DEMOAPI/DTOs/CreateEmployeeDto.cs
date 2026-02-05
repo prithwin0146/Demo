@@ -18,4 +18,7 @@ public class CreateEmployeeDto
     
     [JsonPropertyName("password")]
     public string Password { get; set; } = null!;
+
+    [JsonPropertyName("departmentId")]
+    public int? DepartmentId { get; set; }
 }

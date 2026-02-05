@@ -56,7 +56,8 @@ public class EmployeeService : IEmployeeService
             Name = dto.Name,
             Email = dto.Email,
             JobRole = dto.JobRole,
-            Role = dto.SystemRole ?? "Employee"
+            Role = dto.SystemRole ?? "Employee",
+            DepartmentId = dto.DepartmentId
         };
 
         var createdEmployee = await _repository.AddWithPasswordAsync(employee, dto.Password);
@@ -72,6 +73,7 @@ public class EmployeeService : IEmployeeService
         existing.Email = dto.Email;
         existing.JobRole = dto.JobRole;
         existing.Role = dto.SystemRole ?? "Employee";
+        existing.DepartmentId = dto.DepartmentId;
 
         var updatedEmployee = await _repository.UpdateAsync(existing);
         return _mapper.ToDto(updatedEmployee);
@@ -87,9 +89,9 @@ public class EmployeeService : IEmployeeService
     }
 
     //GET PAGED WITH STORED PROCEDURE
-    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request)
+    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null)
     {
-        var (employees, totalRecords) = await _repository.GetEmployeesPagedAsync(request);
+        var (employees, totalRecords) = await _repository.GetEmployeesPagedAsync(request, departmentId);
         var totalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize);
 
         return new PagedResponse<EmployeeDto>

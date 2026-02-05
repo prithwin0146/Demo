@@ -1,7 +1,10 @@
 <div class="edit-project-container">
   <div class="header">
     <h2>Edit Project</h2>
-    <a routerLink="/projects" class="btn btn-back">← Back to Projects</a>
+    <div class="header-buttons">
+      <button class="btn btn-delete" (click)="deleteProject()">Delete Project</button>
+      <a routerLink="/projects" class="btn btn-back">← Back to Projects</a>
+    </div>
   </div>
 
   <div *ngIf="loading" class="loading">
@@ -101,22 +104,24 @@
           <select
             id="employeeSelect"
             [(ngModel)]="selectedEmployeeId"
+            (ngModelChange)="onEmployeeSelect()"
             class="form-control"
           >
             <option [value]="0">-- Select Employee --</option>
             <option *ngFor="let emp of availableEmployees" [value]="emp.id">
-              {{ emp.name }} (ID: {{ emp.id }})
+              {{ emp.name }} - {{ emp.jobRole }}
             </option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="roleInput">Role (Optional)</label>
+          <label for="roleInput">Role (Auto-filled)</label>
           <input
             type="text"
             id="roleInput"
             [(ngModel)]="assignRole"
-            placeholder="e.g., Developer, Manager"
+            placeholder="Auto-filled from employee"
+            readonly
             class="form-control"
           />
         </div>

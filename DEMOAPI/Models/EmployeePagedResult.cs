@@ -7,6 +7,7 @@ namespace EmployeeApi.Models
         public string Email { get; set; } = string.Empty;
         public string JobRole { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+        public int? DepartmentId { get; set; }
         public int TotalCount { get; set; }
     }
 }

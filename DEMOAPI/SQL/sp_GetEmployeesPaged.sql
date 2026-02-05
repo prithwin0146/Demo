@@ -3,7 +3,8 @@ CREATE OR ALTER PROCEDURE sp_GetEmployeesPaged
     @PageSize INT = 10,
     @SortBy NVARCHAR(50) = 'Id',
     @SortOrder NVARCHAR(4) = 'ASC',
-    @SearchTerm NVARCHAR(100) = NULL
+    @SearchTerm NVARCHAR(100) = NULL,
+    @DepartmentId INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -29,12 +30,14 @@ BEGIN
             e.Email,
             e.JobRole,
             e.Role,
+            e.DepartmentId,
             COUNT(*) OVER() AS TotalCount
         FROM Employees e
         WHERE (@SearchTerm IS NULL 
             OR e.Name LIKE ''%'' + @SearchTerm + ''%''
             OR e.Email LIKE ''%'' + @SearchTerm + ''%''
             OR e.JobRole LIKE ''%'' + @SearchTerm + ''%'')
+            AND (@DepartmentId IS NULL OR e.DepartmentId = @DepartmentId)
     )
     SELECT 
         Id,
@@ -42,6 +45,7 @@ BEGIN
         Email,
         JobRole,
         Role,
+        DepartmentId,
         TotalCount
     FROM EmployeeCTE
     ORDER BY ' + QUOTENAME(@SortBy) + ' ' + @SortOrder + '
@@ -50,7 +54,7 @@ BEGIN
 
     -- Execute dynamic SQL
     EXEC sp_executesql @SQL,
-        N'@SearchTerm NVARCHAR(100), @Offset INT, @PageSize INT',
-        @SearchTerm, @Offset, @PageSize;
+        N'@SearchTerm NVARCHAR(100), @DepartmentId INT, @Offset INT, @PageSize INT',
+        @SearchTerm, @DepartmentId, @Offset, @PageSize;
 END
 GO  

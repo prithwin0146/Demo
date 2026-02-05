@@ -61,5 +61,26 @@ public class ProjectsController : ControllerBase
 
         return NoContent();
     }
+
+    // DELETE BY ID
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var success = await _projectService.DeleteAsync(id);
+        if (!success)
+        {
+            return NotFound(new { message = "Project not found" });
+        }
+
+        return NoContent();
+    }
+
+    // GET PAGED
+    [HttpGet("paged")]
+    public async Task<ActionResult<PagedResponse<ProjectDto>>> GetPaged([FromQuery] PaginationRequest request)
+    {
+        var pagedResponse = await _projectService.GetProjectsPagedAsync(request);
+        return Ok(pagedResponse);
+    }
 }
 
