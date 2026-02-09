@@ -1,31 +1,43 @@
 import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { EmployeeService } from '../employee.service';
 import { DepartmentService } from '../../departments/department.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-edit-employee',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './edit-employee.html',
   styleUrls: ['./edit-employee.css']
 })
 export class EditEmployeeComponent implements OnInit {
   id!: number;
-  name = '';
-  email = '';
-  jobRole = '';
-  systemRole = 'Employee';
-  departmentId: number | null = null;
-  error: string | null = null;
-  
+  employeeForm: FormGroup;
+  loading = false;
+  saving = false;
+
   currentUserRole = '';
   isAdmin = false;
   departments: any[] = [];
-  
+
   jobRoles = [
     'Software Engineer',
     'Senior Software Engineer',
@@ -40,33 +52,57 @@ export class EditEmployeeComponent implements OnInit {
     'Accountant',
     'Sales Executive'
   ];
-  
-  systemRoles = ['Admin', 'HR', 'Employee'];
+
+  systemRoles = ['Admin', 'HR', 'Manager', 'Employee'];
 
   constructor(
+    private fb: FormBuilder,
     private empService: EmployeeService,
     private departmentService: DepartmentService,
+    private notificationService: NotificationService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
+    this.employeeForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      jobRole: ['', Validators.required],
+      systemRole: ['Employee', Validators.required],
+      departmentId: [null]
+    });
+  }
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.detectUserRole();
     this.loadDepartments();
+    this.loadEmployee();
+  }
+
+  loadEmployee(): void {
+    this.loading = true;
     this.id = Number(this.route.snapshot.paramMap.get('id'));
+
     this.empService.getEmployee(this.id).subscribe({
       next: (emp) => {
-        this.name = emp.name;
-        this.email = emp.email;
-        this.jobRole = emp.jobRole || '';
-        this.systemRole = emp.systemRole || 'Employee';
-        this.departmentId = emp.departmentId || null;
+        this.employeeForm.patchValue({
+          name: emp.name,
+          email: emp.email,
+          jobRole: emp.jobRole || '',
+          systemRole: emp.systemRole || 'Employee',
+          departmentId: emp.departmentId || null
+        });
+        this.loading = false;
         this.cdr.markForCheck();
       },
       error: (err) => {
-        this.error = err.error?.message || 'Employee not found';
+        this.notificationService.showError(err.error?.message || 'Employee not found');
+        this.loading = false;
         this.cdr.markForCheck();
       }
     });
@@ -80,6 +116,7 @@ export class EditEmployeeComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading departments:', err);
+        this.notificationService.showError('Failed to load departments');
       }
     });
   }
@@ -91,7 +128,11 @@ export class EditEmployeeComponent implements OnInit {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           this.currentUserRole = payload.role || payload.Role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || '';
-          this.isAdmin = this.currentUserRole === 'Admin';
+          this.isAdmin = this.currentUserRole === 'Admin' || this.currentUserRole === 'HR' || this.currentUserRole === 'Manager';
+
+          if (!this.isAdmin) {
+            this.employeeForm.get('systemRole')?.disable();
+          }
         } catch (e) {
           console.error('Error parsing token', e);
         }
@@ -99,34 +140,37 @@ export class EditEmployeeComponent implements OnInit {
     }
   }
 
-  dismissError(): void {
-    this.error = null;
-  }
-
-  goBack(): void {
-    this.router.navigate(['/employees']);
-  }
-
-  update(): void {
-    if (!this.name || !this.email || !this.jobRole) {
-      this.error = 'Please fill in all fields';
+  onSubmit(): void {
+    if (this.employeeForm.invalid) {
+      this.employeeForm.markAllAsTouched();
       return;
     }
 
-    const employee = { 
-      name: this.name, 
-      email: this.email, 
-      jobRole: this.jobRole,
-      systemRole: this.systemRole,
-      departmentId: this.departmentId
+    this.saving = true;
+    const formValue = this.employeeForm.getRawValue();
+
+    const employee = {
+      name: formValue.name,
+      email: formValue.email,
+      jobRole: formValue.jobRole,
+      systemRole: formValue.systemRole,
+      departmentId: formValue.departmentId
     };
 
-    this.error = null;
     this.empService.updateEmployee(this.id, employee).subscribe({
-      next: () => this.router.navigate(['/employees']),
+      next: () => {
+        this.notificationService.showSuccess('Employee updated successfully!');
+        this.router.navigate(['/employees']);
+      },
       error: (err) => {
-        this.error = err.error?.message || 'Update failed';
+        const errorMessage = err.error?.message || 'Update failed';
+        this.notificationService.showError(errorMessage);
+        this.saving = false;
       }
     });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/employees']);
   }
 }

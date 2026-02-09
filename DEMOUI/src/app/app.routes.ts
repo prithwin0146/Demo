@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 
 import { Login } from './login/login';
 import { RegisterComponent } from './register/register';
+import { LayoutComponent } from './shared/layout/layout.component';
 import { EmployeeListComponent } from './employees/employee-list/employee-list';
 
 import { AddEmployeeComponent } from './employees/add-employee/add-employee';
@@ -22,9 +23,10 @@ export const routes: Routes = [
 
   { path: 'login', component: Login },
 
-  { 
-    path: '', 
-    canActivateChild: [authGuard], 
+  {
+    path: '',
+    component: LayoutComponent,
+    canActivateChild: [authGuard],
     children: [
       { path: 'register', component: RegisterComponent },
       {
@@ -42,9 +44,9 @@ export const routes: Routes = [
       { path: 'departments/add', component: AddDepartmentComponent },
       { path: 'departments/edit/:id', component: EditDepartmentComponent },
       { path: 'departments/:id', component: DepartmentViewComponent },
-    ] 
+    ]
   },
-  
+
   { path: '**', redirectTo: 'login' }
 ];
 

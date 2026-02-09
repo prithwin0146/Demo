@@ -1,136 +1,100 @@
 <div class="project-list-container">
-  <div class="header">
-    <h2>Projects</h2>
-    <div class="header-buttons">
-      <a *ngIf="canEdit" routerLink="/projects/add" class="btn btn-add">+ Add Project</a>
-      <a routerLink="/employees" class="btn btn-back">← Back to Employees</a>
-    </div>
-  </div>
+  <h1>Projects</h1>
 
-  <!-- Search Bar -->
-  <div class="search-container">
-    <input 
-      type="text" 
-      placeholder="Search projects..." 
-      (input)="onSearch($event)"
-      [value]="searchTerm"
-      class="search-input"
-    />
-  </div>
-
+  <!-- Loading Spinner -->
   <div *ngIf="loading" class="loading">
-    Loading projects...
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading projects...</p>
   </div>
 
+  <!-- Error Alert -->
   <div *ngIf="error" class="error">
     {{ error }}
   </div>
 
-  <div *ngIf="!loading && !error" class="table-container">
-    <table class="project-table">
-      <thead>
-        <tr>
-          <th (click)="sort('ProjectName')" class="sortable">
-            Project Name
-            <span class="sort-indicator" *ngIf="sortBy === 'ProjectName'">
-              {{ sortOrder === 'ASC' ? '↑' : '↓' }}
-            </span>
-          </th>
-          <th>Status</th>
-          <th (click)="sort('StartDate')" class="sortable">
-            Start Date
-            <span class="sort-indicator" *ngIf="sortBy === 'StartDate'">
-              {{ sortOrder === 'ASC' ? '↑' : '↓' }}
-            </span>
-          </th>
-          <th>End Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let project of projects">
-          <td>{{ project.projectName }}</td>
-          <td>
-            <span *ngIf="project.status" class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+  <!-- Content -->
+  <div *ngIf="!loading && !error">
+    <!-- Action Buttons -->
+    <div class="button-group">
+      <button *ngIf="canEdit" mat-raised-button color="primary" routerLink="/projects/add">
+        <mat-icon>add</mat-icon>
+        Add Project
+      </button>
+    </div>
+
+    <!-- Search -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search projects</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Search by name..." [value]="searchTerm">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Material Table -->
+    <div *ngIf="projects && projects.length > 0; else noProjects" class="table-container">
+      <table mat-table [dataSource]="projects" matSort (matSortChange)="onSortChange($event)">
+
+        <!-- Project Name Column -->
+        <ng-container matColumnDef="projectName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Project Name</th>
+          <td mat-cell *matCellDef="let project">{{ project.projectName }}</td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let project">
+            <mat-chip *ngIf="project.status" [class]="'status-chip status-' + project.status.toLowerCase()">
               {{ project.status }}
-            </span>
-            <span *ngIf="!project.status" class="status-badge status-unknown">
+            </mat-chip>
+            <mat-chip *ngIf="!project.status" class="status-chip status-unknown">
               N/A
-            </span>
+            </mat-chip>
           </td>
-          <td>{{ project.startDate | date: 'MM/dd/yyyy' }}</td>
-          <td>{{ project.endDate ? (project.endDate | date: 'MM/dd/yyyy') : 'N/A' }}</td>
-          <td>
-            <div class="action-buttons">
-              <a [routerLink]="['/projects', project.projectId]" class="btn btn-view">View</a>
-              <a *ngIf="canEdit" [routerLink]="['/projects/edit', project.projectId]" class="btn btn-edit">Edit</a>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+        </ng-container>
 
-    <div *ngIf="projects.length === 0" class="no-data">
-      No projects found.
+        <!-- Start Date Column -->
+        <ng-container matColumnDef="startDate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Start Date</th>
+          <td mat-cell *matCellDef="let project">{{ project.startDate | date: 'MM/dd/yyyy' }}</td>
+        </ng-container>
+
+        <!-- End Date Column -->
+        <ng-container matColumnDef="endDate">
+          <th mat-header-cell *matHeaderCellDef>End Date</th>
+          <td mat-cell *matCellDef="let project">{{ project.endDate ? (project.endDate | date: 'MM/dd/yyyy') : 'N/A' }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let project" class="actions">
+            <button mat-icon-button color="primary" [routerLink]="['/projects', project.projectId]" title="View">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button *ngIf="canEdit" mat-icon-button color="accent" [routerLink]="['/projects/edit', project.projectId]" title="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+
+      <!-- Material Paginator -->
+      <mat-paginator
+        [length]="totalRecords"
+        [pageSize]="pageSize"
+        [pageIndex]="pageNumber - 1"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
 
-    <!-- Pagination Controls -->
-    <div *ngIf="totalRecords > 0" class="pagination-container">
-      <div class="pagination-info">
-        Showing {{ (pageNumber - 1) * pageSize + 1 }} to {{ Math.min(pageNumber * pageSize, totalRecords) }} of {{ totalRecords }} projects
-      </div>
-
-      <div class="pagination-controls">
-        <div class="pagination-buttons">
-          <button 
-            (click)="firstPage()" 
-            [disabled]="pageNumber === 1"
-            class="btn-page btn-first"
-            title="First Page">
-            <span class="page-icon">⟨⟨</span>
-          </button>
-          
-          <button 
-            (click)="previousPage()" 
-            [disabled]="pageNumber === 1"
-            class="btn-page btn-prev"
-            title="Previous Page">
-            <span class="page-icon">⟨</span>
-          </button>
-          
-          <span class="page-info">Page {{ pageNumber }} of {{ totalPages }}</span>
-          
-          <button 
-            (click)="nextPage()" 
-            [disabled]="pageNumber === totalPages"
-            class="btn-page btn-next"
-            title="Next Page">
-            <span class="page-icon">⟩</span>
-          </button>
-          
-          <button 
-            (click)="lastPage()" 
-            [disabled]="pageNumber === totalPages"
-            class="btn-page btn-last"
-            title="Last Page">
-            <span class="page-icon">⟩⟩</span>
-          </button>
-        </div>
-
-        <div class="pagination-size">
-          <label for="pageSize" class="page-size-label">Rows per page:</label>
-          <select 
-            id="pageSize"
-            (change)="changePageSize(+$any($event.target).value)" 
-            [value]="pageSize" 
-            class="page-size-select">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-      </div>
-    </div>
+    <!-- No Projects Message -->
+    <ng-template #noProjects>
+      <p class="no-data">No projects found.</p>
+    </ng-template>
   </div>
 </div>

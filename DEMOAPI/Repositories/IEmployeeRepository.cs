@@ -5,11 +5,12 @@ namespace EmployeeApi.Repositories;
 
 public interface IEmployeeRepository
 {
-    Task<List<Employee>> GetAllAsync();
-    Task<Employee?> GetByIdAsync(int id);
-    Task<Employee> AddAsync(Employee emp);
-    Task<Employee> AddWithPasswordAsync(Employee emp, string password);
-    Task<Employee> UpdateAsync(Employee emp);
-    Task<Employee> DeleteAsync(Employee emp);
-    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null);
+    List<Employee> GetAll();
+    Employee? GetById(int id);
+    Employee Add(Employee emp);
+    Employee AddWithPassword(Employee emp, string password);
+    Employee Update(Employee emp);
+    Employee Delete(Employee emp);
+    bool ExistsByEmail(string email);
+    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null);
 }

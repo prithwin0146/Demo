@@ -4,7 +4,7 @@ export interface Employee {
   email: string;
   jobRole: string;       // Business role: Developer, Manager, etc.
   userId?: number;       // FK to Users table
-  userRole?: string;     // System role: Admin | HR | Employee
+  userRole?: string;     // System role: Admin | HR | Manager | Employee
 }
 
 export interface PaginationRequest {

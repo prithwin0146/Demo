@@ -1,5 +1,5 @@
 using EmployeeApi.DTOs;
-using EmployeeApi.Repositories;
+using EmployeeApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeeApi.Controllers;
@@ -8,31 +8,44 @@ namespace EmployeeApi.Controllers;
 [Route("api/[controller]")]
 public class EmployeeProjectsController : ControllerBase
 {
-    private readonly IEmployeeProjectRepository _repository;
+    private readonly IEmployeeProjectService _service;
 
-    public EmployeeProjectsController(IEmployeeProjectRepository repository)
+    public EmployeeProjectsController(IEmployeeProjectService service)
     {
-        _repository = repository;
+        _service = service;
     }
-    //Get by ID
+
+    // GET BY PROJECT ID (LEGACY - Returns all)
     [HttpGet("project/{projectId}")]
-    public async Task<ActionResult<List<EmployeeProjectDto>>> GetByProject(int projectId)
+    public ActionResult<List<EmployeeProjectDto>> GetByProject(int projectId)
     {
-        var assignments = await _repository.GetByProjectIdAsync(projectId);
+        var assignments = _service.GetByProjectId(projectId);
         return Ok(assignments);
     }
-    //POST
-    [HttpPost]
-    public async Task<ActionResult<int>> Assign([FromBody] AssignEmployeeDto dto)
+
+    // GET PAGED BY PROJECT ID (NEW - Returns paginated)
+    [HttpGet("project/{projectId}/paged")]
+    public async Task<ActionResult<PagedResponse<EmployeeProjectDto>>> GetByProjectPaged(
+        int projectId,
+        [FromQuery] PaginationRequest request)
     {
-        var id = await _repository.AssignAsync(dto);
+        var pagedResponse = await _service.GetEmployeeProjectsPagedAsync(projectId, request);
+        return Ok(pagedResponse);
+    }
+
+    // POST
+    [HttpPost]
+    public ActionResult<int> Assign([FromBody] AssignEmployeeDto dto)
+    {
+        var id = _service.Assign(dto);
         return Ok(id);
     }
-    //DELETE
+
+    // DELETE
     [HttpDelete("{employeeId}/{projectId}")]
-    public async Task<ActionResult> Remove(int employeeId, int projectId)
+    public ActionResult Remove(int employeeId, int projectId)
     {
-        var result = await _repository.RemoveAsync(employeeId, projectId);
+        var result = _service.Remove(employeeId, projectId);
         if (!result)
             return NotFound();
         return NoContent();

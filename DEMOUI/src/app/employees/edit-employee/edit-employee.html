@@ -2,91 +2,82 @@
   <div class="form-card">
     <h2>Edit Employee</h2>
 
-    <!-- Error Alert -->
-    <div *ngIf="error" class="error-alert">
-      <strong>Error:</strong> {{ error }}
-      <button (click)="dismissError()" class="btn-close" type="button">✕</button>
-    </div>
+    <mat-spinner *ngIf="loading" diameter="50"></mat-spinner>
 
-    <!-- Edit Employee Form -->
-    <form (ngSubmit)="update()" class="employee-form">
+    <form [formGroup]="employeeForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
       <!-- Name Field -->
-      <div class="form-group">
-        <label for="name">Full Name:</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          [(ngModel)]="name"
-          placeholder="Enter employee full name"
-          class="form-control"
-          required
-        />
-      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Full Name</mat-label>
+        <input matInput formControlName="name" placeholder="Enter employee full name">
+        <mat-icon matPrefix>person</mat-icon>
+        <mat-error *ngIf="employeeForm.get('name')?.hasError('required')">
+          Name is required
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('name')?.hasError('minlength')">
+          Name must be at least 2 characters
+        </mat-error>
+      </mat-form-field>
 
       <!-- Email Field -->
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          [(ngModel)]="email"
-          placeholder="Enter employee email"
-          class="form-control"
-          required
-        />
-      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" placeholder="Enter employee email">
+        <mat-icon matPrefix>email</mat-icon>
+        <mat-error *ngIf="employeeForm.get('email')?.hasError('required')">
+          Email is required
+        </mat-error>
+        <mat-error *ngIf="employeeForm.get('email')?.hasError('email')">
+          Valid email is required
+        </mat-error>
+      </mat-form-field>
 
       <!-- Job Role Field -->
-      <div class="form-group">
-        <label for="jobRole">Job Role:</label>
-        <select
-          id="jobRole"
-          name="jobRole"
-          [(ngModel)]="jobRole"
-          class="form-control"
-          required
-        >
-          <option value="">Select a job role</option>
-          <option *ngFor="let jr of jobRoles" [value]="jr">{{ jr }}</option>
-        </select>
-      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Job Role</mat-label>
+        <mat-select formControlName="jobRole">
+          <mat-option value="">Select a job role</mat-option>
+          <mat-option *ngFor="let jr of jobRoles" [value]="jr">{{ jr }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>work</mat-icon>
+        <mat-error *ngIf="employeeForm.get('jobRole')?.hasError('required')">
+          Job role is required
+        </mat-error>
+      </mat-form-field>
 
       <!-- System Role Field -->
-      <div class="form-group">
-        <label for="systemRole">System Role:</label>
-        <select
-          id="systemRole"
-          name="systemRole"
-          [(ngModel)]="systemRole"
-          class="form-control"
-          [disabled]="!isAdmin"
-          required
-        >
-          <option *ngFor="let sr of systemRoles" [value]="sr">{{ sr }}</option>
-        </select>
-        <small class="form-text" *ngIf="!isAdmin">Only Admin can edit system roles</small>
-      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>System Role</mat-label>
+        <mat-select formControlName="systemRole">
+          <mat-option *ngFor="let sr of systemRoles" [value]="sr">{{ sr }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>admin_panel_settings</mat-icon>
+        <mat-hint *ngIf="!isAdmin">Only Admin can edit system roles</mat-hint>
+        <mat-error *ngIf="employeeForm.get('systemRole')?.hasError('required')">
+          System role is required
+        </mat-error>
+      </mat-form-field>
 
       <!-- Department Field -->
-      <div class="form-group">
-        <label for="departmentId">Department:</label>
-        <select
-          id="departmentId"
-          name="departmentId"
-          [(ngModel)]="departmentId"
-          class="form-control"
-        >
-          <option [ngValue]="null">-- No Department --</option>
-          <option *ngFor="let dept of departments" [ngValue]="dept.departmentId">{{ dept.departmentName }}</option>
-        </select>
-      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Department</mat-label>
+        <mat-select formControlName="departmentId">
+          <mat-option [value]="null">-- No Department --</mat-option>
+          <mat-option *ngFor="let dept of departments" [value]="dept.departmentId">
+            {{ dept.departmentName }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>business</mat-icon>
+      </mat-form-field>
 
       <!-- Buttons -->
       <div class="button-group">
-        <button type="submit" class="btn-submit">Update Employee</button>
-        <button type="button" (click)="goBack()" class="btn-cancel">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="employeeForm.invalid || saving">
+          <mat-icon>save</mat-icon>
+          {{ saving ? 'Saving...' : 'Update Employee' }}
+        </button>
+        <button mat-stroked-button type="button" (click)="cancel()">
+          Cancel
+        </button>
       </div>
     </form>
   </div>

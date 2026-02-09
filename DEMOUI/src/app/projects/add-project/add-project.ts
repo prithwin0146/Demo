@@ -1,8 +1,16 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ProjectService } from '../project.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { CreateProject } from '../project.models';
 import { AuthService } from '../../login/auth.service';
 
@@ -11,74 +19,75 @@ import { AuthService } from '../../login/auth.service';
   standalone: true,
   templateUrl: './add-project.html',
   styleUrls: ['./add-project.css'],
-  imports: [CommonModule, FormsModule, RouterLink]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ]
 })
 export class AddProjectComponent implements OnInit {
-  project: CreateProject = {
-    projectName: '',
-    description: '',
-    startDate: '',
-    endDate: null,
-    status: 'Active'
-  };
-
-  loading = false;
-  error: string | null = null;
+  projectForm: FormGroup;
+  saving = false;
   statuses = ['Active', 'Completed', 'On-Hold'];
 
   constructor(
+    private fb: FormBuilder,
     private projectService: ProjectService,
+    private notificationService: NotificationService,
     private router: Router,
     private authService: AuthService
-  ) {}
+  ) {
+    this.projectForm = this.fb.group({
+      projectName: ['', [Validators.required, Validators.minLength(2)]],
+      description: ['', [Validators.required, Validators.minLength(10)]],
+      startDate: ['', Validators.required],
+      endDate: [''],
+      status: ['Active', Validators.required]
+    });
+  }
 
   ngOnInit(): void {
-    // Check if user has permission to create projects
     if (!this.authService.isHROrAdmin()) {
-      alert('You do not have permission to create projects');
+      this.notificationService.showError('You do not have permission to create projects');
       this.router.navigate(['/projects']);
     }
   }
 
   onSubmit(): void {
-    if (!this.validateForm()) {
+    if (this.projectForm.invalid) {
+      this.projectForm.markAllAsTouched();
       return;
     }
 
-    this.loading = true;
-    this.error = null;
+    this.saving = true;
+    const formValue = this.projectForm.value;
 
-    this.projectService.createProject(this.project).subscribe({
+    const project: CreateProject = {
+      projectName: formValue.projectName,
+      description: formValue.description,
+      startDate: formValue.startDate ? new Date(formValue.startDate).toISOString().split('T')[0] : '',
+      endDate: formValue.endDate ? new Date(formValue.endDate).toISOString().split('T')[0] : null,
+      status: formValue.status
+    };
+
+    this.projectService.createProject(project).subscribe({
       next: () => {
-        this.loading = false;
+        this.notificationService.showSuccess('Project created successfully!');
         this.router.navigate(['/projects']);
       },
       error: (err) => {
         console.error('Error creating project:', err);
-        this.error = 'Failed to create project. Please try again.';
-        this.loading = false;
+        const errorMessage = err.error?.message || 'Failed to create project. Please try again.';
+        this.notificationService.showError(errorMessage);
+        this.saving = false;
       }
     });
-  }
-
-  validateForm(): boolean {
-    if (!this.project.projectName.trim()) {
-      this.error = 'Project name is required';
-      return false;
-    }
-    if (!this.project.description.trim()) {
-      this.error = 'Description is required';
-      return false;
-    }
-    if (!this.project.startDate) {
-      this.error = 'Start date is required';
-      return false;
-    }
-    if (!this.project.status) {
-      this.error = 'Status is required';
-      return false;
-    }
-    return true;
   }
 
   cancel(): void {

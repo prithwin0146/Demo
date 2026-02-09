@@ -27,6 +27,7 @@ builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
 builder.Services.AddScoped<IEmployeeMapper, EmployeeMapper>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<IEmployeeProjectService, EmployeeProjectService>();
 
 // Controllers
 builder.Services.AddControllers();

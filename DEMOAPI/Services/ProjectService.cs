@@ -12,10 +12,10 @@ public class ProjectService : IProjectService
     {
         _repository = repository;
     }
-
-    public async Task<List<ProjectDto>> GetAllAsync()
+    // GET ALL  
+    public List<ProjectDto> GetAll()
     {
-        var projects = await _repository.GetAllAsync();
+        var projects = _repository.GetAll();
         return projects.Select(p => new ProjectDto
         {
             ProjectId = p.ProjectId,
@@ -26,10 +26,10 @@ public class ProjectService : IProjectService
             Status = p.Status
         }).ToList();
     }
-
-    public async Task<ProjectDto?> GetByIdAsync(int id)
+    // GET BY ID
+    public ProjectDto? GetById(int id)
     {
-        var project = await _repository.GetByIdAsync(id);
+        var project = _repository.GetById(id);
         if (project == null) return null;
 
         return new ProjectDto
@@ -42,8 +42,8 @@ public class ProjectService : IProjectService
             Status = project.Status
         };
     }
-
-    public async Task<int> CreateAsync(CreateProjectDto createDto)
+    // CREATE
+    public int Create(CreateProjectDto createDto)
     {
         var project = new Project
         {
@@ -54,10 +54,10 @@ public class ProjectService : IProjectService
             Status = createDto.Status
         };
 
-        return await _repository.CreateAsync(project);
+        return _repository.Create(project);
     }
-
-    public async Task<bool> UpdateAsync(int id, UpdateProjectDto updateDto)
+    // UPDATE
+    public bool Update(int id, UpdateProjectDto updateDto)
     {
         var project = new Project
         {
@@ -68,14 +68,14 @@ public class ProjectService : IProjectService
             Status = updateDto.Status
         };
 
-        return await _repository.UpdateAsync(id, project);
+        return _repository.Update(id, project);
     }
-
-    public async Task<bool> DeleteAsync(int id)
+    // DELETE
+    public bool Delete(int id)
     {
-        return await _repository.DeleteAsync(id);
+        return _repository.Delete(id);
     }
-
+    // PAGINATION
     public async Task<PagedResponse<ProjectDto>> GetProjectsPagedAsync(PaginationRequest request)
     {
         var (projects, totalRecords) = await _repository.GetProjectsPagedAsync(request);

@@ -1,8 +1,18 @@
 import { Component, OnInit, ChangeDetectorRef, ApplicationRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { ProjectService } from '../project.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { UpdateProject } from '../project.models';
 import { EmployeeService } from '../../employees/employee.service';
 import { Employee } from '../../employees/employee.models';
@@ -15,21 +25,26 @@ import { AuthService } from '../../login/auth.service';
   standalone: true,
   templateUrl: './edit-project.html',
   styleUrls: ['./edit-project.css'],
-  imports: [CommonModule, FormsModule, RouterLink]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatProgressSpinnerModule,
+    MatTableModule
+  ]
 })
 export class EditProjectComponent implements OnInit {
-  project: UpdateProject = {
-    projectName: '',
-    description: '',
-    startDate: '',
-    endDate: null,
-    status: 'Active'
-  };
-
+  projectForm: FormGroup;
   projectId!: number;
   loading = true;
   saving = false;
-  error: string | null = null;
   statuses = ['Active', 'Completed', 'On-Hold'];
 
   employees: Employee[] = [];
@@ -39,10 +54,14 @@ export class EditProjectComponent implements OnInit {
   assignRole: string = '';
   canEdit: boolean = false;
 
+  displayedColumns: string[] = ['employeeId', 'employeeName', 'role', 'assignedDate', 'action'];
+
   constructor(
+    private fb: FormBuilder,
     private projectService: ProjectService,
     private employeeService: EmployeeService,
     private employeeProjectService: EmployeeProjectService,
+    private notificationService: NotificationService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
@@ -50,12 +69,18 @@ export class EditProjectComponent implements OnInit {
     private authService: AuthService
   ) {
     this.canEdit = this.authService.isHROrAdmin();
+    this.projectForm = this.fb.group({
+      projectName: ['', [Validators.required, Validators.minLength(2)]],
+      description: ['', [Validators.required, Validators.minLength(10)]],
+      startDate: ['', Validators.required],
+      endDate: [''],
+      status: ['Active', Validators.required]
+    });
   }
 
   ngOnInit(): void {
-    // Check if user has permission to edit
     if (!this.canEdit) {
-      alert('You do not have permission to edit projects');
+      this.notificationService.showError('You do not have permission to edit projects');
       this.router.navigate(['/projects']);
       return;
     }
@@ -66,26 +91,25 @@ export class EditProjectComponent implements OnInit {
       this.loadEmployees();
       this.loadAssignedEmployees();
     } else {
-      this.error = 'Invalid project ID';
+      this.notificationService.showError('Invalid project ID');
       this.loading = false;
     }
   }
 
   loadProject(): void {
     this.loading = true;
-    this.error = null;
     console.log('Loading project for edit, ID:', this.projectId);
 
     this.projectService.getProjectById(this.projectId).subscribe({
       next: (data) => {
         console.log('Project data loaded:', data);
-        this.project = {
+        this.projectForm.patchValue({
           projectName: data.projectName,
           description: data.description,
-          startDate: this.formatDateForInput(data.startDate),
-          endDate: data.endDate ? this.formatDateForInput(data.endDate) : null,
+          startDate: new Date(data.startDate),
+          endDate: data.endDate ? new Date(data.endDate) : null,
           status: data.status
-        };
+        });
         this.loading = false;
         console.log('Loading set to false, project ready for editing', this.loading);
         this.cdr.markForCheck();
@@ -93,60 +117,40 @@ export class EditProjectComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading project:', err);
-        this.error = 'Failed to load project. Please try again.';
+        this.notificationService.showError('Failed to load project. Please try again.');
         this.loading = false;
       }
     });
   }
 
-  formatDateForInput(date: string): string {
-    // Convert date to YYYY-MM-DD format for input[type="date"]
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
   onSubmit(): void {
-    if (!this.validateForm()) {
+    if (this.projectForm.invalid) {
+      this.projectForm.markAllAsTouched();
       return;
     }
 
     this.saving = true;
-    this.error = null;
+    const formValue = this.projectForm.value;
 
-    this.projectService.updateProject(this.projectId, this.project).subscribe({
+    const project: UpdateProject = {
+      projectName: formValue.projectName,
+      description: formValue.description,
+      startDate: formValue.startDate ? new Date(formValue.startDate).toISOString().split('T')[0] : '',
+      endDate: formValue.endDate ? new Date(formValue.endDate).toISOString().split('T')[0] : null,
+      status: formValue.status
+    };
+
+    this.projectService.updateProject(this.projectId, project).subscribe({
       next: () => {
-        this.saving = false;
+        this.notificationService.showSuccess('Project updated successfully!');
         this.router.navigate(['/projects']);
       },
       error: (err) => {
         console.error('Error updating project:', err);
-        this.error = 'Failed to update project. Please try again.';
+        this.notificationService.showError('Failed to update project. Please try again.');
         this.saving = false;
       }
     });
-  }
-
-  validateForm(): boolean {
-    if (!this.project.projectName.trim()) {
-      this.error = 'Project name is required';
-      return false;
-    }
-    if (!this.project.description.trim()) {
-      this.error = 'Description is required';
-      return false;
-    }
-    if (!this.project.startDate) {
-      this.error = 'Start date is required';
-      return false;
-    }
-    if (!this.project.status) {
-      this.error = 'Status is required';
-      return false;
-    }
-    return true;
   }
 
   cancel(): void {
@@ -161,6 +165,7 @@ export class EditProjectComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading employees:', err);
+        this.notificationService.showError('Failed to load employees');
       }
     });
   }
@@ -174,6 +179,7 @@ export class EditProjectComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading assigned employees:', err);
+        this.notificationService.showError('Failed to load assigned employees');
       }
     });
   }
@@ -196,7 +202,7 @@ export class EditProjectComponent implements OnInit {
 
   assignEmployee(): void {
     if (this.selectedEmployeeId <= 0) {
-      alert('Please select an employee');
+      this.notificationService.showError('Please select an employee');
       return;
     }
 
@@ -208,47 +214,47 @@ export class EditProjectComponent implements OnInit {
 
     this.employeeProjectService.assign(assignment).subscribe({
       next: () => {
+        this.notificationService.showSuccess('Employee assigned successfully');
         this.loadAssignedEmployees();
         this.selectedEmployeeId = 0;
         this.assignRole = '';
       },
       error: (err) => {
         console.error('Error assigning employee:', err);
-        alert('Failed to assign employee');
+        this.notificationService.showError('Failed to assign employee');
       }
     });
   }
 
-  removeEmployee(employeeId: number): void {
-    if (!confirm('Remove this employee from the project?')) {
-      return;
+  removeEmployee(employeeId: number, employeeName: string): void {
+    if (confirm(`Remove ${employeeName} from the project?`)) {
+      this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Employee removed successfully');
+          this.loadAssignedEmployees();
+        },
+        error: (err) => {
+          console.error('Error removing employee:', err);
+          this.notificationService.showError('Failed to remove employee');
+        }
+      });
     }
-
-    this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
-      next: () => {
-        this.loadAssignedEmployees();
-      },
-      error: (err) => {
-        console.error('Error removing employee:', err);
-        alert('Failed to remove employee');
-      }
-    });
   }
 
   deleteProject(): void {
-    if (!confirm(`Are you sure you want to delete the project "${this.project.projectName}"? This action cannot be undone.`)) {
-      return;
+    const projectName = this.projectForm.get('projectName')?.value || 'this project';
+    if (confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
+      this.projectService.deleteProject(this.projectId).subscribe({
+        next: () => {
+          console.log('Project deleted successfully');
+          this.notificationService.showSuccess('Project deleted successfully');
+          this.router.navigate(['/projects']);
+        },
+        error: (err) => {
+          console.error('Error deleting project:', err);
+          this.notificationService.showError('Failed to delete project. Please try again.');
+        }
+      });
     }
-
-    this.projectService.deleteProject(this.projectId).subscribe({
-      next: () => {
-        console.log('Project deleted successfully');
-        this.router.navigate(['/projects']);
-      },
-      error: (err) => {
-        console.error('Error deleting project:', err);
-        alert('Failed to delete project. Please try again.');
-      }
-    });
   }
 }

@@ -16,16 +16,16 @@ public class ProjectsController : ControllerBase
     }
     // GET
     [HttpGet]
-    public async Task<ActionResult<List<ProjectDto>>> GetAll()
+    public ActionResult<List<ProjectDto>> GetAll()
     {
-        var projects = await _projectService.GetAllAsync();
+        var projects = _projectService.GetAll();
         return Ok(projects);
     }
     // GET BY ID
     [HttpGet("{id}")]
-    public async Task<ActionResult<ProjectDto>> GetById(int id)
+    public ActionResult<ProjectDto> GetById(int id)
     {
-        var project = await _projectService.GetByIdAsync(id);
+        var project = _projectService.GetById(id);
         if (project == null)
         {
             return NotFound(new { message = "Project not found" });
@@ -34,26 +34,26 @@ public class ProjectsController : ControllerBase
     }
     // POST
     [HttpPost]
-    public async Task<ActionResult<int>> Create([FromBody] CreateProjectDto createDto)
+    public ActionResult<int> Create([FromBody] CreateProjectDto createDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var projectId = await _projectService.CreateAsync(createDto);
+        var projectId = _projectService.Create(createDto);
         return CreatedAtAction(nameof(GetById), new { id = projectId }, new { projectId });
     }
     // PUT BY ID
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(int id, [FromBody] UpdateProjectDto updateDto)
+    public ActionResult Update(int id, [FromBody] UpdateProjectDto updateDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var success = await _projectService.UpdateAsync(id, updateDto);
+        var success = _projectService.Update(id, updateDto);
         if (!success)
         {
             return NotFound(new { message = "Project not found" });
@@ -64,9 +64,9 @@ public class ProjectsController : ControllerBase
 
     // DELETE BY ID
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public ActionResult Delete(int id)
     {
-        var success = await _projectService.DeleteAsync(id);
+        var success = _projectService.Delete(id);
         if (!success)
         {
             return NotFound(new { message = "Project not found" });

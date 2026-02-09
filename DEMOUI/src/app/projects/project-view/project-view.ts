@@ -1,7 +1,17 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatChipsModule } from '@angular/material/chips';
 import { ProjectService } from '../project.service';
 import { Project } from '../project.models';
 import { EmployeeProjectService } from '../employee-project.service';
@@ -9,22 +19,36 @@ import { EmployeeProjectDto, AssignEmployeeDto } from '../employee-project.model
 import { EmployeeService } from '../../employees/employee.service';
 import { Employee } from '../../employees/employee.models';
 import { AuthService } from '../../login/auth.service';
+import { NotificationService } from '../../shared/services/notification.service';
 
 @Component({
   selector: 'app-project-view',
   standalone: true,
   templateUrl: './project-view.html',
   styleUrls: ['./project-view.css'],
-  imports: [CommonModule, FormsModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatProgressSpinnerModule,
+    MatChipsModule
+  ]
 })
 export class ProjectViewComponent implements OnInit {
   project: Project | null = null;
   assignedEmployees: EmployeeProjectDto[] = [];
-  displayedEmployees: EmployeeProjectDto[] = [];
   loading = true;
+  loadingEmployees = false;
   error: string | null = null;
   projectId!: number;
-  
+
   showAssignForm = false;
   allEmployees: Employee[] = [];
   availableEmployees: Employee[] = [];
@@ -32,11 +56,17 @@ export class ProjectViewComponent implements OnInit {
   assignRole: string = '';
   canEdit: boolean = false;
 
-  // Pagination for assigned employees
+  // Pagination for assigned employees (server-side)
   currentPage = 1;
   pageSize = 10;
-  totalPages = 1;
+  totalRecords = 0;
+  totalPages = 0;
+  sortBy = 'AssignedDate';
+  sortOrder: 'ASC' | 'DESC' = 'DESC';
+  searchTerm = '';
   Math = Math;
+
+  displayedColumns: string[] = ['employeeId', 'employeeName', 'role', 'assignedDate', 'action'];
 
   constructor(
     private projectService: ProjectService,
@@ -45,12 +75,20 @@ export class ProjectViewComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.canEdit = this.authService.isHROrAdmin();
   }
 
   ngOnInit(): void {
+    // Only load data in the browser, not during SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.projectId = +id;
@@ -87,51 +125,81 @@ export class ProjectViewComponent implements OnInit {
   }
 
   loadAssignedEmployees(): void {
-    this.employeeProjectService.getByProject(this.projectId).subscribe({
-      next: (data) => {
-        this.assignedEmployees = data;
-        this.totalPages = Math.ceil(this.assignedEmployees.length / this.pageSize);
-        this.updateDisplayedEmployees();
+    this.loadingEmployees = true;
+    this.employeeProjectService.getEmployeeProjectsPaged(
+      this.projectId,
+      this.currentPage,
+      this.pageSize,
+      this.sortBy,
+      this.sortOrder,
+      this.searchTerm
+    ).subscribe({
+      next: (response) => {
+        this.assignedEmployees = response.data;
+        this.totalRecords = response.totalRecords;
+        this.totalPages = response.totalPages;
+        this.loadingEmployees = false;
         this.updateAvailableEmployees();
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading assigned employees:', err);
+        this.loadingEmployees = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
-  updateDisplayedEmployees(): void {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    this.displayedEmployees = this.assignedEmployees.slice(startIndex, endIndex);
+  onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.loadAssignedEmployees();
+  }
+
+  onPageEvent(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1;
+    this.loadAssignedEmployees();
+  }
+
+  onSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm = input.value;
+    this.currentPage = 1;
+    this.loadAssignedEmployees();
+  }
+
+  onSort(column: string): void {
+    if (this.sortBy === column) {
+      this.sortOrder = this.sortOrder === 'ASC' ? 'DESC' : 'ASC';
+    } else {
+      this.sortBy = column;
+      this.sortOrder = 'ASC';
+    }
+    this.loadAssignedEmployees();
   }
 
   changePageSize(newSize: number): void {
     this.pageSize = newSize;
     this.currentPage = 1;
-    this.totalPages = Math.ceil(this.assignedEmployees.length / this.pageSize);
-    this.updateDisplayedEmployees();
+    this.loadAssignedEmployees();
   }
 
   goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.updateDisplayedEmployees();
-    }
+    this.onPageChange(page);
   }
 
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.updateDisplayedEmployees();
+      this.loadAssignedEmployees();
     }
   }
 
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
-      this.updateDisplayedEmployees();
+      this.loadAssignedEmployees();
     }
   }
 
@@ -178,7 +246,7 @@ export class ProjectViewComponent implements OnInit {
 
   assignEmployee(): void {
     if (this.selectedEmployeeId <= 0) {
-      alert('Please select an employee');
+      this.notificationService.showError('Please select an employee');
       return;
     }
 
@@ -190,6 +258,8 @@ export class ProjectViewComponent implements OnInit {
 
     this.employeeProjectService.assign(assignment).subscribe({
       next: () => {
+        this.notificationService.showSuccess('Employee assigned successfully');
+        this.currentPage = 1;
         this.loadAssignedEmployees();
         this.selectedEmployeeId = 0;
         this.assignRole = '';
@@ -197,7 +267,7 @@ export class ProjectViewComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error assigning employee:', err);
-        alert('Failed to assign employee. Please try again.');
+        this.notificationService.showError('Failed to assign employee. Please try again.');
       }
     });
   }
@@ -209,15 +279,15 @@ export class ProjectViewComponent implements OnInit {
 
     this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
       next: () => {
-        this.loadAssignedEmployees();
-        // Reset to page 1 if current page becomes empty
-        if (this.displayedEmployees.length === 1 && this.currentPage > 1) {
+        this.notificationService.showSuccess('Employee removed successfully');
+        if (this.assignedEmployees.length === 1 && this.currentPage > 1) {
           this.currentPage--;
         }
+        this.loadAssignedEmployees();
       },
       error: (err) => {
         console.error('Error removing employee:', err);
-        alert('Failed to remove employee. Please try again.');
+        this.notificationService.showError('Failed to remove employee. Please try again.');
       }
     });
   }
@@ -230,11 +300,12 @@ export class ProjectViewComponent implements OnInit {
     this.projectService.deleteProject(this.projectId).subscribe({
       next: () => {
         console.log('Project deleted successfully');
+        this.notificationService.showSuccess('Project deleted successfully');
         this.router.navigate(['/projects']);
       },
       error: (err) => {
         console.error('Error deleting project:', err);
-        alert('Failed to delete project. Please try again.');
+        this.notificationService.showError('Failed to delete project. Please try again.');
       }
     });
   }

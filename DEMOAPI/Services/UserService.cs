@@ -20,7 +20,7 @@ namespace EmployeeApi.Services
             _config = config;
         }
 
-        //Register
+        // Register
         public async Task<string?> RegisterAsync(RegisterUserDto registerDto)
         {
             if (string.IsNullOrWhiteSpace(registerDto.Email) ||
@@ -43,7 +43,7 @@ namespace EmployeeApi.Services
             return "Registered!";
         }
 
-        //Login
+        // Login
         public LoginResponseDto? Login(LoginUserDto loginDto)
         {
           
@@ -60,7 +60,7 @@ namespace EmployeeApi.Services
             };
         }
 
-        //JWT
+        // JWT
         private string GenerateJwtToken(User user)
         {
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);

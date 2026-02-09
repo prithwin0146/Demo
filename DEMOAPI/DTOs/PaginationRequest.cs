@@ -14,7 +14,7 @@ namespace EmployeeApi.DTOs
         }
 
         public string? SortBy { get; set; }
-        public bool Ascending { get; set; } = true;
+        public string SortOrder { get; set; } = "ASC";
         public string? SearchTerm { get; set; }
     }
 }

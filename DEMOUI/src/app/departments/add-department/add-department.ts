@@ -1,32 +1,53 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { DepartmentService } from '../department.service';
 import { EmployeeService } from '../../employees/employee.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CreateDepartment } from '../department.models';
 
 @Component({
   selector: 'app-add-department',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './add-department.html',
   styleUrls: ['./add-department.css']
 })
 export class AddDepartmentComponent implements OnInit {
-  departmentName = '';
-  description = '';
-  managerId: number | null = null;
-  error: string | null = null;
+  departmentForm: FormGroup;
   employees: any[] = [];
-  loading = false;
+  saving = false;
 
   constructor(
+    private fb: FormBuilder,
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
+    private notificationService: NotificationService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.departmentForm = this.fb.group({
+      departmentName: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', Validators.maxLength(500)],
+      managerId: [null]
+    });
+  }
 
   ngOnInit(): void {
     this.loadEmployees();
@@ -40,44 +61,43 @@ export class AddDepartmentComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('Error loading employees:', err);
+        this.notificationService.showError('Failed to load employees');
         this.cdr.detectChanges();
       }
     });
   }
 
-  dismissError(): void {
-    this.error = null;
-    this.cdr.detectChanges();
-  }
-
-  goBack(): void {
-    this.router.navigate(['/departments']);
-  }
-
-  save(): void {
-    if (!this.departmentName) {
-      this.error = 'Department name is required';
+  onSubmit(): void {
+    if (this.departmentForm.invalid) {
+      this.departmentForm.markAllAsTouched();
       return;
     }
 
+    this.saving = true;
+    const formValue = this.departmentForm.value;
+
     const department: CreateDepartment = {
-      departmentName: this.departmentName,
-      description: this.description || null,
-      managerId: this.managerId
+      departmentName: formValue.departmentName,
+      description: formValue.description || null,
+      managerId: formValue.managerId
     };
 
-    this.loading = true;
     this.departmentService.createDepartment(department).subscribe({
       next: () => {
-        alert('Department created successfully!');
+        this.notificationService.showSuccess('Department created successfully!');
         this.router.navigate(['/departments']);
       },
       error: (err) => {
         console.error('Error creating department:', err);
-        this.error = err.error?.message || 'Failed to create department';
-        this.loading = false;
+        const errorMessage = err.error?.message || 'Failed to create department';
+        this.notificationService.showError(errorMessage);
+        this.saving = false;
         this.cdr.detectChanges();
       }
     });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/departments']);
   }
 }

@@ -3,220 +3,167 @@
 
   <!-- Loader -->
   <div *ngIf="loading" class="loader-container">
-    <div class="spinner"></div>
+    <mat-spinner diameter="50"></mat-spinner>
     <p>Loading employees...</p>
   </div>
 
   <!-- Error Alert -->
   <div *ngIf="error" class="error-alert">
-    <strong>Error:</strong> {{ error }}
-    <button (click)="dismissError()" class="btn-close">✕</button>
+    <span><strong>Error:</strong> {{ error }}</span>
+    <button mat-icon-button (click)="dismissError()" class="btn-close">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 
   <!-- Content (shown when not loading) -->
   <div *ngIf="!loading" class="content">
-    
+    <!-- Action Buttons -->
     <div class="button-group">
-      <button 
-        *ngIf="isAdmin || isHR" 
-        [routerLink]="['/employees/add']" 
-        [disabled]="loading" 
-        class="btn-add">
+      <button
+        *ngIf="isAdmin || isHR || isManager"
+        mat-raised-button
+        color="primary"
+        [routerLink]="['/employees/add']"
+        [disabled]="loading">
+        <mat-icon>add</mat-icon>
         Add Employee
       </button>
-      <button 
-        [routerLink]="['/projects']" 
-        [disabled]="loading" 
-        class="btn-projects">
-        Projects
-      </button>
-      <button 
-        [routerLink]="['/departments']" 
-        [disabled]="loading" 
-        class="btn-projects">
-        Departments
-      </button>
-      <button (click)="refreshEmployees()" [disabled]="loading" class="btn-refresh">
-        ↻ Refresh
-      </button>
-      <button (click)="logout()" class="btn-logout">
-        Logout
+      <button
+        mat-icon-button
+        (click)="refreshEmployees()"
+        [disabled]="loading"
+        title="Refresh">
+        <mat-icon>refresh</mat-icon>
       </button>
     </div>
 
-    <!-- Search Box -->
-    <div class="search-container">
-      <input 
-        type="text" 
-        placeholder="Search by name or email..." 
-        #searchInput
-        (input)="search(searchInput.value)"
-        class="search-input"
-      />
-      <button (click)="clearSearch(searchInput)" class="btn-clear">Clear</button>
+    <!-- Search & Filters -->
+    <div class="filter-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search employees</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Search by name or email...">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Job Role</mat-label>
+        <mat-select [value]="selectedJobRole" (selectionChange)="onJobRoleFilterChange($event.value)">
+          <mat-option value="">All Job Roles</mat-option>
+          <mat-option *ngFor="let role of jobRoles" [value]="role">{{ role }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>System Role</mat-label>
+        <mat-select [value]="selectedSystemRole" (selectionChange)="onSystemRoleFilterChange($event.value)">
+          <mat-option value="">All System Roles</mat-option>
+          <mat-option *ngFor="let role of systemRoles" [value]="role">{{ role }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        *ngIf="selectedJobRole || selectedSystemRole"
+        mat-stroked-button
+        color="warn"
+        (click)="clearFilters()"
+        class="clear-filters-btn">
+        <mat-icon>clear</mat-icon>
+        Clear Filters
+      </button>
     </div>
 
     <!-- Employee Table -->
     <div *ngIf="employees && employees.length > 0; else noEmployees" class="table-container">
-      <table class="employee-table">
-        <thead>
-          <tr>
-            <th (click)="sortColumn('Id')" class="sortable">
-              ID {{ sortBy === 'Id' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
-            </th>
-            <th (click)="sortColumn('Name')" class="sortable">
-              NAME {{ sortBy === 'Name' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
-            </th>
-            <th (click)="sortColumn('Email')" class="sortable">
-              EMAIL {{ sortBy === 'Email' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
-            </th>
-            <th (click)="sortColumn('JobRole')" class="sortable">
-              JOB ROLE {{ sortBy === 'JobRole' ? (sortOrder === 'ASC' ? '▲' : '▼') : '' }}
-            </th>
-            <th *ngIf="isAdmin">SYSTEM ROLE</th>
-            <th>ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let employee of employees">
-            <td>{{ employee.id }}</td>
-            <td>{{ employee.name }}</td>
-            <td>{{ employee.email }}</td>
-            <td>{{ employee.jobRole }}</td>
-            <td *ngIf="isAdmin">
-              <span [class]="'role-badge role-' + employee.systemRole.toLowerCase()">
-                {{ employee.systemRole }}
-              </span>
-            </td>
-            <td class="actions">
-              <!-- Debug: Show role flags -->
-              <!-- Admin={{ isAdmin }} HR={{ isHR }} Employee={{ isEmployee }} -->
-              
-              <!-- Admin: Edit + Delete -->
-              <button 
-                *ngIf="isAdmin"
-                [routerLink]="['/employees/edit', employee.id]" 
-                class="btn-edit">
-                Edit
-              </button>
-              <button 
-                *ngIf="isAdmin"
-                (click)="deleteEmployee(employee.id)" 
-                class="btn-delete">
-                Delete
-              </button>
-              
-              <!-- HR: Edit only -->
-              <button 
-                *ngIf="isHR && !isAdmin"
-                [routerLink]="['/employees/edit', employee.id]" 
-                class="btn-edit">
-                Edit
-              </button>
-              
-              <!-- Employee: View Only -->
-              <span 
-                *ngIf="isEmployee && !isAdmin && !isHR"
-                class="view-only">
-                View Only
-              </span>
-            </td>
-          </tr>
-        </tbody>
+      <table mat-table [dataSource]="employees" matSort (matSortChange)="onSortChange($event)">
+
+        <!-- ID Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+          <td mat-cell *matCellDef="let employee">{{ employee.id }}</td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <td mat-cell *matCellDef="let employee">{{ employee.name }}</td>
+        </ng-container>
+
+        <!-- Email Column -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Email</th>
+          <td mat-cell *matCellDef="let employee">{{ employee.email }}</td>
+        </ng-container>
+
+        <!-- Job Role Column -->
+        <ng-container matColumnDef="jobRole">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Job Role</th>
+          <td mat-cell *matCellDef="let employee">{{ employee.jobRole }}</td>
+        </ng-container>
+
+        <!-- System Role Column (Admin only) -->
+        <ng-container matColumnDef="systemRole">
+          <th mat-header-cell *matHeaderCellDef>System Role</th>
+          <td mat-cell *matCellDef="let employee">
+            <span [class]="'role-badge role-' + employee.systemRole?.toLowerCase()">
+              {{ employee.systemRole }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let employee" class="actions">
+            <!-- Admin & Manager: Edit + Delete -->
+            <button
+              *ngIf="isAdmin || isManager"
+              mat-icon-button
+              color="primary"
+              [routerLink]="['/employees/edit', employee.id]"
+              title="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button
+              *ngIf="isAdmin || isManager"
+              mat-icon-button
+              color="warn"
+              (click)="deleteEmployee(employee.id)"
+              title="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+
+            <!-- HR: Edit only -->
+            <button
+              *ngIf="isHR && !isAdmin && !isManager"
+              mat-icon-button
+              color="primary"
+              [routerLink]="['/employees/edit', employee.id]"
+              title="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+
+            <!-- Employee: View Only -->
+            <span
+              *ngIf="isEmployee && !isAdmin && !isHR && !isManager"
+              class="view-only">
+              View Only
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
 
-      <!-- Pagination Controls -->
-      <div class="pagination-footer">
-        <div class="pagination-info">
-          <span class="info-text">
-            Showing <strong>{{ (pageNumber - 1) * pageSize + 1 }}</strong> to 
-            <strong>{{ Math.min(pageNumber * pageSize, totalRecords) }}</strong> of 
-            <strong>{{ totalRecords }}</strong> entries
-          </span>
-        </div>
-        
-        <div class="pagination-controls">
-          <!-- First Page Button -->
-          <button 
-            (click)="goToPage(1)" 
-            [disabled]="pageNumber === 1"
-            class="btn-page btn-first"
-            title="First Page">
-            <span class="page-icon">⟨⟨</span>
-          </button>
-          
-          <!-- Previous Button -->
-          <button 
-            (click)="goToPage(pageNumber - 1)" 
-            [disabled]="pageNumber === 1"
-            class="btn-page btn-prev"
-            title="Previous Page">
-            <span class="page-icon">⟨</span>
-          </button>
-          
-          <!-- Page Numbers -->
-          <div class="page-numbers">
-            <!-- First Page (if not in visible range) -->
-            <button 
-              *ngIf="getVisiblePages()[0] > 1"
-              (click)="goToPage(1)"
-              class="btn-page-number">
-              1
-            </button>
-            <span *ngIf="getVisiblePages()[0] > 2" class="page-ellipsis">...</span>
-            
-            <!-- Visible Page Numbers -->
-            <button 
-              *ngFor="let page of getVisiblePages()"
-              (click)="goToPage(page)"
-              [class.active]="page === pageNumber"
-              class="btn-page-number">
-              {{ page }}
-            </button>
-            
-            <!-- Last Page (if not in visible range) -->
-            <span *ngIf="getVisiblePages()[getVisiblePages().length - 1] < totalPages - 1" class="page-ellipsis">...</span>
-            <button 
-              *ngIf="getVisiblePages()[getVisiblePages().length - 1] < totalPages"
-              (click)="goToPage(totalPages)"
-              class="btn-page-number">
-              {{ totalPages }}
-            </button>
-          </div>
-          
-          <!-- Next Button -->
-          <button 
-            (click)="goToPage(pageNumber + 1)" 
-            [disabled]="pageNumber === totalPages"
-            class="btn-page btn-next"
-            title="Next Page">
-            <span class="page-icon">⟩</span>
-          </button>
-          
-          <!-- Last Page Button -->
-          <button 
-            (click)="goToPage(totalPages)" 
-            [disabled]="pageNumber === totalPages"
-            class="btn-page btn-last"
-            title="Last Page">
-            <span class="page-icon">⟩⟩</span>
-          </button>
-        </div>
-
-        <div class="pagination-size">
-          <label for="pageSize" class="page-size-label">Rows per page:</label>
-          <select 
-            id="pageSize"
-            (change)="changePageSize(+$any($event.target).value)" 
-            [value]="pageSize" 
-            class="page-size-select">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-        </div>
-      </div>
+      <!-- Material Paginator -->
+      <mat-paginator
+        [length]="totalRecords"
+        [pageSize]="pageSize"
+        [pageIndex]="pageNumber - 1"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
 
     <!-- No Employees Message -->

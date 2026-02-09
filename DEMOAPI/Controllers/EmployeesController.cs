@@ -18,25 +18,27 @@ namespace EmployeeApi.Controllers
 
         // GET all employees
         [HttpGet]
-        public async Task<ActionResult<List<EmployeeDto>>> GetAll()
+        public ActionResult<List<EmployeeDto>> GetAll()
         {
-            return await _employeeService.GetAllAsync();
+            return _employeeService.GetAll();
         }
 
         // GET paginated employees with stored procedure
         [HttpGet("paged")]
         public async Task<ActionResult<PagedResponse<EmployeeDto>>> GetPaged(
             [FromQuery] PaginationRequest request,
-            [FromQuery] int? departmentId = null)
+            [FromQuery] int? departmentId = null,
+            [FromQuery] string? jobRole = null,
+            [FromQuery] string? systemRole = null)
         {
-            return await _employeeService.GetEmployeesPagedAsync(request, departmentId);
+            return await _employeeService.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole);
         }
 
         // GET employee by id
         [HttpGet("{id}")]
-        public async Task<ActionResult<EmployeeDto>> Get(int id)
+        public ActionResult<EmployeeDto> Get(int id)
         {
-            var employee = await _employeeService.GetByIdAsync(id);
+            var employee = _employeeService.GetById(id);
             if (employee == null)
             {
                 return NotFound(new { message = "Employee not found" });
@@ -46,11 +48,11 @@ namespace EmployeeApi.Controllers
 
         // POST create employee
         [HttpPost]
-        public async Task<ActionResult<EmployeeDto>> Create(CreateEmployeeDto dto)
+        public ActionResult<EmployeeDto> Create(CreateEmployeeDto dto)
         {
             try
             {
-                var employee = await _employeeService.CreateAsync(dto);
+                var employee = _employeeService.Create(dto);
                 return Ok(employee);
             }
             catch (InvalidPasswordException ex)
@@ -69,11 +71,11 @@ namespace EmployeeApi.Controllers
 
         // PUT update employee
         [HttpPut("{id}")]
-        public async Task<ActionResult<EmployeeDto>> Update(int id, UpdateEmployeeDto dto)
+        public ActionResult<EmployeeDto> Update(int id, UpdateEmployeeDto dto)
         {
             try
             {
-                var employee = await _employeeService.UpdateAsync(id, dto);
+                var employee = _employeeService.Update(id, dto);
                 if (employee == null)
                 {
                     return NotFound(new { message = "Employee not found" });
@@ -88,11 +90,11 @@ namespace EmployeeApi.Controllers
 
         // DELETE remove employee
         [HttpDelete("{id}")]
-        public async Task<ActionResult<EmployeeDto>> Delete(int id)
+        public ActionResult<EmployeeDto> Delete(int id)
         {
             try
             {
-                var employee = await _employeeService.DeleteAsync(id);
+                var employee = _employeeService.Delete(id);
                 if (employee == null)
                 {
                     return NotFound(new { message = "Employee not found" });

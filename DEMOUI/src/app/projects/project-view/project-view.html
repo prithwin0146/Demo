@@ -1,173 +1,174 @@
-<div class="project-view-container">
-  <div *ngIf="loading" class="loading">
-    Loading project details...
-  </div>
+<div class="container">
+  <mat-spinner *ngIf="loading" diameter="50"></mat-spinner>
 
   <div *ngIf="error" class="error">
     {{ error }}
-    <button class="btn btn-back" (click)="goBack()">Back to Projects</button>
+    <button mat-stroked-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Projects
+    </button>
   </div>
 
-  <div *ngIf="!loading && !error && project" class="project-details">
-    <div class="header">
-      <h2>{{ project.projectName }}</h2>
-      <div class="header-buttons">
-        <button *ngIf="canEdit" class="btn btn-delete" (click)="deleteProject()">Delete Project</button>
-        <button class="btn btn-back" (click)="goBack()">← Back to Projects</button>
-      </div>
-    </div>
+  <div *ngIf="!loading && !error && project">
+    <!-- Header Card -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>{{ project.projectName }}</mat-card-title>
+        <div class="header-actions">
+          <button *ngIf="canEdit" mat-raised-button color="warn" (click)="deleteProject()">
+            <mat-icon>delete</mat-icon>
+            Delete Project
+          </button>
+          <button mat-stroked-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+           Back to Projects
+          </button>
+        </div>
+      </mat-card-header>
+    </mat-card>
 
-    <div class="details-card">
-      <div class="detail-row">
-        <span class="label">Project ID:</span>
-        <span class="value">{{ project.projectId }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="label">Project Name:</span>
-        <span class="value">{{ project.projectName }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="label">Description:</span>
-        <span class="value description">{{ project.description }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="label">Status:</span>
-        <span class="value">
-          <span *ngIf="project.status" class="status-badge" [ngClass]="'status-' + project.status.toLowerCase()">
+    <!-- Project Details Card -->
+    <mat-card class="details-card">
+      <mat-card-header>
+        <mat-card-title>Project Details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Project ID:</span>
+          <span class="value">{{ project.projectId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Description:</span>
+          <span class="value">{{ project.description }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Start Date:</span>
+          <span class="value">{{ project.startDate | date: 'MMM d, yyyy' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">End Date:</span>
+          <span class="value">{{ project.endDate ? (project.endDate | date: 'MMM d, yyyy') : 'N/A' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <mat-chip [class]="'status-' + project.status.toLowerCase()">
             {{ project.status }}
-          </span>
-          <span *ngIf="!project.status">N/A</span>
-        </span>
-      </div>
+          </mat-chip>
+        </div>
+      </mat-card-content>
+    </mat-card>
 
-      <div class="detail-row">
-        <span class="label">Start Date:</span>
-        <span class="value">{{ project.startDate ? (project.startDate | date: 'MMMM d, yyyy') : 'Not set' }}</span>
-      </div>
-
-      <div class="detail-row">
-        <span class="label">End Date:</span>
-        <span class="value">{{ project.endDate ? (project.endDate | date: 'MMMM d, yyyy') : 'Not set' }}</span>
-      </div>
-    </div>
-
-    <!-- Assigned Employees Section -->
-    <div class="employees-section">
-      <div class="section-header">
-        <h3>Assigned Employees</h3>
-        <button *ngIf="canEdit" class="btn btn-primary" (click)="toggleAssignForm()">
-          {{ showAssignForm ? 'Cancel' : '+ Assign Employee' }}
+    <!-- Assigned Employees Card -->
+    <mat-card class="employee-section">
+      <mat-card-header>
+        <mat-card-title>Assigned Employees</mat-card-title>
+        <button *ngIf="canEdit" mat-raised-button color="accent" (click)="toggleAssignForm()">
+          <mat-icon>{{ showAssignForm ? 'close' : 'add' }}</mat-icon>
+          {{ showAssignForm ? 'Cancel' : 'Assign Employee' }}
         </button>
-      </div>
+      </mat-card-header>
 
-      <!-- Assign Form -->
-      <div *ngIf="showAssignForm && canEdit" class="assign-form">
-        <select 
-          [(ngModel)]="selectedEmployeeId"
-          (ngModelChange)="onEmployeeSelect()" 
-          class="form-select">
-          <option [value]="0">-- Select Employee --</option>
-          <option *ngFor="let emp of availableEmployees" [value]="emp.id">
-            {{ emp.name }} - {{ emp.jobRole }}
-          </option>
-        </select>
-        <input 
-          type="text" 
-          [(ngModel)]="assignRole" 
-          placeholder="Role (auto-filled from employee)"
-          readonly
-          class="form-input">
-        <button class="btn btn-success" (click)="assignEmployee()">Assign</button>
-      </div>
+      <!-- Assignment Form -->
+      <mat-card-content *ngIf="showAssignForm">
+        <div class="assign-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Select Employee</mat-label>
+            <mat-select [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeSelect()">
+              <mat-option [value]="0">-- Select Employee --</mat-option>
+              <mat-option *ngFor="let emp of availableEmployees" [value]="emp.id">
+                {{ emp.name }} - {{ emp.jobRole }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>person</mat-icon>
+          </mat-form-field>
 
-      <!-- Employees List -->
-      <div *ngIf="assignedEmployees.length > 0" class="employees-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Employee Name</th>
-              <th>Role</th>
-              <th>Assigned Date</th>
-              <th *ngIf="canEdit">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let emp of displayedEmployees">
-              <td>{{ emp.employeeId }}</td>
-              <td>{{ emp.employeeName }}</td>
-              <td>{{ emp.role || 'N/A' }}</td>
-              <td>{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
-              <td *ngIf="canEdit">
-                <button class="btn btn-danger btn-sm" (click)="removeEmployee(emp.employeeId)">
-                  Remove
+          <mat-form-field appearance="outline">
+            <mat-label>Role</mat-label>
+            <input matInput [(ngModel)]="assignRole" placeholder="Auto-filled from employee" readonly>
+            <mat-icon matPrefix>work</mat-icon>
+          </mat-form-field>
+
+          <button mat-raised-button color="primary" (click)="assignEmployee()">
+            <mat-icon>check</mat-icon>
+            Assign
+          </button>
+        </div>
+      </mat-card-content>
+
+      <!-- Search and Page Size Controls -->
+      <mat-card-content>
+        <div class="table-controls">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search employees</mat-label>
+            <input matInput (input)="onSearch($event)" [value]="searchTerm" placeholder="Search by name or role">
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="page-size-field">
+            <mat-label>Page Size</mat-label>
+            <mat-select [value]="pageSize" (selectionChange)="changePageSize($event.value)">
+              <mat-option [value]="5">5</mat-option>
+              <mat-option [value]="10">10</mat-option>
+              <mat-option [value]="25">25</mat-option>
+              <mat-option [value]="50">50</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+
+      <!-- Employee Table -->
+      <mat-card-content>
+        <mat-spinner *ngIf="loadingEmployees" diameter="40"></mat-spinner>
+
+        <div *ngIf="!loadingEmployees && assignedEmployees.length === 0" class="no-data">
+          No employees assigned to this project yet.
+        </div>
+
+        <div *ngIf="!loadingEmployees && assignedEmployees.length > 0">
+          <table mat-table [dataSource]="assignedEmployees" class="employees-table mat-elevation-z2">
+            <ng-container matColumnDef="employeeId">
+              <th mat-header-cell *matHeaderCellDef>Employee ID</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.employeeId }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="employeeName">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.employeeName }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="role">
+              <th mat-header-cell *matHeaderCellDef>Role</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.role || 'N/A' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="assignedDate">
+              <th mat-header-cell *matHeaderCellDef>Assigned Date</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef>Action</th>
+              <td mat-cell *matCellDef="let emp">
+                <button *ngIf="canEdit" mat-mini-fab color="warn" (click)="removeEmployee(emp.employeeId)">
+                  <mat-icon>delete</mat-icon>
                 </button>
               </td>
-            </tr>
-          </tbody>
-        </table>
+            </ng-container>
 
-        <!-- Pagination Controls -->
-        <div *ngIf="assignedEmployees.length > pageSize" class="pagination-container">
-          <div class="pagination-info">
-            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, assignedEmployees.length) }} of {{ assignedEmployees.length }} employees
-          </div>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
 
-          <div class="pagination-controls">
-            <div class="pagination-buttons">
-              <button 
-                (click)="goToPage(1)" 
-                [disabled]="currentPage === 1"
-                class="btn-page">
-                ⟨⟨
-              </button>
-              
-              <button 
-                (click)="previousPage()" 
-                [disabled]="currentPage === 1"
-                class="btn-page">
-                ⟨
-              </button>
-              
-              <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
-              
-              <button 
-                (click)="nextPage()" 
-                [disabled]="currentPage === totalPages"
-                class="btn-page">
-                ⟩
-              </button>
-              
-              <button 
-                (click)="goToPage(totalPages)" 
-                [disabled]="currentPage === totalPages"
-                class="btn-page">
-                ⟩⟩
-              </button>
-            </div>
-
-            <div class="pagination-size">
-              <label class="page-size-label">Rows:</label>
-              <select 
-                (change)="changePageSize(+$any($event.target).value)" 
-                [value]="pageSize" 
-                class="page-size-select">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-              </select>
-            </div>
-          </div>
+          <mat-paginator
+            [length]="totalRecords"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="currentPage - 1"
+            (page)="onPageEvent($event)"
+            showFirstLastButtons>
+          </mat-paginator>
         </div>
-      </div>
-
-      <div *ngIf="assignedEmployees.length === 0" class="no-employees">
-        No employees assigned yet.
-      </div>
-    </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

@@ -1,14 +1,34 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DepartmentService } from '../department.service';
-import { EmployeeService } from '../../employees/employee.service';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { Department } from '../department.models';
+import { EmployeeService } from '../../employees/employee.service';
+import { AuthService } from '../../login/auth.service';
+import { NotificationService } from '../../shared/services/notification.service';
 
 @Component({
   selector: 'app-department-view',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './department-view.html',
   styleUrls: ['./department-view.css']
 })
@@ -18,6 +38,7 @@ export class DepartmentViewComponent implements OnInit {
   loading = true;
   loadingEmployees = false;
   error: string | null = null;
+  canEdit: boolean = false;
 
   // Pagination for employees
   currentPage = 1;
@@ -31,15 +52,28 @@ export class DepartmentViewComponent implements OnInit {
   // Make Math available in template
   Math = Math;
 
+  displayedColumns: string[] = ['employeeId', 'name', 'email', 'jobRole'];
+
   constructor(
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
     private router: Router,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private notificationService: NotificationService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.canEdit = this.authService.isHROrAdmin();
+  }
 
   ngOnInit(): void {
+    // Only load data in the browser, not during SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
+
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.loadDepartment(id);
   }
@@ -100,6 +134,14 @@ export class DepartmentViewComponent implements OnInit {
     }
   }
 
+  onPageEvent(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1;
+    if (this.department) {
+      this.loadEmployees(this.department.departmentId);
+    }
+  }
+
   onSearch(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerm = input.value;
@@ -119,6 +161,26 @@ export class DepartmentViewComponent implements OnInit {
     if (this.department) {
       this.loadEmployees(this.department.departmentId);
     }
+  }
+
+  deleteDepartment(): void {
+    if (!this.department) return;
+
+    if (!confirm(`Are you sure you want to delete "${this.department.departmentName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.departmentService.deleteDepartment(this.department.departmentId).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Department deleted successfully');
+        this.router.navigate(['/departments']);
+      },
+      error: (err) => {
+        console.error('Error deleting department:', err);
+        const message = err.error?.message || 'Failed to delete department. Please try again.';
+        this.notificationService.showError(message);
+      }
+    });
   }
 
   goBack(): void {

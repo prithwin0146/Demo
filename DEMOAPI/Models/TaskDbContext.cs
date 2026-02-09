@@ -55,6 +55,7 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
                 entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
                 entity.Property(e => e.Password).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Role).HasMaxLength(50).HasDefaultValue("Employee");
             });
 
             // PROJECTS
@@ -71,7 +72,7 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.Status).HasMaxLength(50).IsRequired();
             });
 
-            // EMPLOYEE PROJECTS
+          
             // EMPLOYEE PROJECTS
             modelBuilder.Entity<EmployeeProject>(entity =>
             {
@@ -95,9 +96,10 @@ namespace EmployeeApi.Models
                 entity.Property(e => e.ManagerId);
             });
 
-            // 
+
             // Keyless entity for stored procedure results
             modelBuilder.Entity<EmployeeProjectDto>().HasNoKey();
+            modelBuilder.Entity<EmployeeProjectPagedResult>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
         }

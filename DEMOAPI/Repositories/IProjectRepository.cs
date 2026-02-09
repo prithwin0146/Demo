@@ -5,10 +5,10 @@ namespace EmployeeApi.Repositories;
 
 public interface IProjectRepository
 {
-    Task<List<Project>> GetAllAsync();
-    Task<Project?> GetByIdAsync(int id);
-    Task<int> CreateAsync(Project project);
-    Task<bool> UpdateAsync(int id, Project project);
-    Task<bool> DeleteAsync(int id);
+    List<Project> GetAll();
+    Project? GetById(int id);
+    int Create(Project project);
+    bool Update(int id, Project project);
+    bool Delete(int id);
     Task<(List<ProjectPagedResult> Data, int TotalCount)> GetProjectsPagedAsync(PaginationRequest request);
 }

@@ -1,88 +1,81 @@
-<div class="add-project-container">
-  <div class="header">
+<div class="container">
+  <div class="form-card">
     <h2>Add New Project</h2>
-    <a routerLink="/projects" class="btn btn-back">← Back to Projects</a>
-  </div>
 
-  <div *ngIf="error" class="error">
-    {{ error }}
-  </div>
+    <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+      <!-- Project Name Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Project Name</mat-label>
+        <input matInput formControlName="projectName" placeholder="Enter project name">
+        <mat-icon matPrefix>work</mat-icon>
+        <mat-error *ngIf="projectForm.get('projectName')?.hasError('required')">
+          Project name is required
+        </mat-error>
+        <mat-error *ngIf="projectForm.get('projectName')?.hasError('minlength')">
+          Project name must be at least 2 characters
+        </mat-error>
+      </mat-form-field>
 
-  <form (ngSubmit)="onSubmit()" class="project-form">
-    <div class="form-group">
-      <label for="projectName">Project Name <span class="required">*</span></label>
-      <input
-        type="text"
-        id="projectName"
-        name="projectName"
-        [(ngModel)]="project.projectName"
-        [disabled]="loading"
-        class="form-control"
-        required
-      />
-    </div>
+      <!-- Description Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" placeholder="Enter project description" rows="4"></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        <mat-error *ngIf="projectForm.get('description')?.hasError('required')">
+          Description is required
+        </mat-error>
+        <mat-error *ngIf="projectForm.get('description')?.hasError('minlength')">
+          Description must be at least 10 characters
+        </mat-error>
+      </mat-form-field>
 
-    <div class="form-group">
-      <label for="description">Description <span class="required">*</span></label>
-      <textarea
-        id="description"
-        name="description"
-        [(ngModel)]="project.description"
-        [disabled]="loading"
-        class="form-control"
-        rows="4"
-        required
-      ></textarea>
-    </div>
+      <!-- Date Fields Row -->
+      <div class="date-row">
+        <!-- Start Date Field -->
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Start Date</mat-label>
+          <input matInput [matDatepicker]="startPicker" formControlName="startDate">
+          <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+          <mat-icon matPrefix>event</mat-icon>
+          <mat-error *ngIf="projectForm.get('startDate')?.hasError('required')">
+            Start date is required
+          </mat-error>
+        </mat-form-field>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label for="startDate">Start Date <span class="required">*</span></label>
-        <input
-          type="date"
-          id="startDate"
-          name="startDate"
-          [(ngModel)]="project.startDate"
-          [disabled]="loading"
-          class="form-control"
-          required
-        />
+        <!-- End Date Field -->
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>End Date</mat-label>
+          <input matInput [matDatepicker]="endPicker" formControlName="endDate">
+          <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+          <mat-icon matPrefix>event</mat-icon>
+          <mat-hint>Optional</mat-hint>
+        </mat-form-field>
       </div>
 
-      <div class="form-group">
-        <label for="endDate">End Date</label>
-        <input
-          type="date"
-          id="endDate"
-          name="endDate"
-          [(ngModel)]="project.endDate"
-          [disabled]="loading"
-          class="form-control"
-        />
+      <!-- Status Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option *ngFor="let status of statuses" [value]="status">{{ status }}</mat-option>
+        </mat-select>
+        <mat-icon matPrefix>info</mat-icon>
+        <mat-error *ngIf="projectForm.get('status')?.hasError('required')">
+          Status is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button mat-raised-button color="primary" type="submit" [disabled]="projectForm.invalid || saving">
+          <mat-icon>save</mat-icon>
+          {{ saving ? 'Creating...' : 'Create Project' }}
+        </button>
+        <button mat-stroked-button type="button" (click)="cancel()">
+          Cancel
+        </button>
       </div>
-    </div>
-
-    <div class="form-group">
-      <label for="status">Status <span class="required">*</span></label>
-      <select
-        id="status"
-        name="status"
-        [(ngModel)]="project.status"
-        [disabled]="loading"
-        class="form-control"
-        required
-      >
-        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
-      </select>
-    </div>
-
-    <div class="button-group">
-      <button type="submit" class="btn btn-primary" [disabled]="loading">
-        {{ loading ? 'Creating...' : 'Create Project' }}
-      </button>
-      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
-        Cancel
-      </button>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>

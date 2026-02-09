@@ -72,7 +72,9 @@ export class EmployeeService {
     sortBy: string = 'Id',
     sortOrder: 'ASC' | 'DESC' = 'ASC',
     searchTerm: string = '',
-    departmentId?: number
+    departmentId?: number,
+    jobRole?: string,
+    systemRole?: string
   ): Observable<PagedResponse<any>> {
     let params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
@@ -88,6 +90,18 @@ export class EmployeeService {
       params = params.set('departmentId', departmentId.toString());
     }
 
-    return this.http.get<PagedResponse<any>>(`${this.apiUrl}/paged`, { params });
+    if (jobRole) {
+      params = params.set('jobRole', jobRole);
+    }
+
+    if (systemRole) {
+      params = params.set('systemRole', systemRole);
+    }
+
+    const url = `${this.apiUrl}/paged?${params.toString()}`;
+    console.log('📡 HTTP GET REQUEST STARTING:', url);
+    return this.http.get<PagedResponse<any>>(`${this.apiUrl}/paged`, { params }).pipe(
+      tap(response => console.log('✅ HTTP RESPONSE RECEIVED:', response))
+    );
   }
 }

@@ -1,0 +1,26 @@
+<mat-toolbar color="primary" class="navbar">
+  <span class="app-title">Employee Management</span>
+
+  <span class="nav-spacer"></span>
+
+  <div class="nav-links">
+    <button mat-button routerLink="/employees" routerLinkActive="active-link">
+      <mat-icon>people</mat-icon>
+      Employees
+    </button>
+    <button mat-button routerLink="/projects" routerLinkActive="active-link">
+      <mat-icon>work</mat-icon>
+      Projects
+    </button>
+    <button mat-button routerLink="/departments" routerLinkActive="active-link">
+      <mat-icon>business</mat-icon>
+      Departments
+    </button>
+  </div>
+
+  <div class="user-info">
+    <button mat-icon-button (click)="logout()" title="Logout">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>

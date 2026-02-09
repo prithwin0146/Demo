@@ -1,20 +1,46 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, ViewChild, PLATFORM_ID, Inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ProjectService } from '../project.service';
 import { Project } from '../project.models';
 import { AuthService } from '../../login/auth.service';
 import { FormsModule } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
   templateUrl: './project-list.html',
   styleUrls: ['./project-list.css'],
-  imports: [CommonModule, RouterLink, FormsModule]
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatChipsModule
+  ]
 })
 export class ProjectListComponent implements OnInit {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   projects: Project[] = [];
+  displayedColumns: string[] = ['projectName', 'status', 'startDate', 'endDate', 'actions'];
   loading = true;
   error: string | null = null;
   canEdit: boolean = false;
@@ -33,7 +59,8 @@ export class ProjectListComponent implements OnInit {
   constructor(
     private projectService: ProjectService,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.canEdit = this.authService.isHROrAdmin();
     console.log('ProjectListComponent - User role:', this.authService.getUserRole());
@@ -41,6 +68,12 @@ export class ProjectListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Only load data in the browser, not during SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
+
     this.loadProjects();
   }
 
@@ -113,13 +146,30 @@ export class ProjectListComponent implements OnInit {
     this.loadProjects();
   }
 
-  sort(column: string): void {
-    if (this.sortBy === column) {
-      this.sortOrder = this.sortOrder === 'ASC' ? 'DESC' : 'ASC';
+  // Material Paginator event handler
+  onPageChange(event: PageEvent): void {
+    this.pageNumber = event.pageIndex + 1;
+    this.pageSize = event.pageSize;
+    this.loadProjects();
+  }
+
+  // Material Sort event handler
+  onSortChange(sort: Sort): void {
+    if (sort.direction) {
+      this.sortBy = sort.active.charAt(0).toUpperCase() + sort.active.slice(1);
+      this.sortOrder = sort.direction === 'asc' ? 'ASC' : 'DESC';
     } else {
-      this.sortBy = column;
+      this.sortBy = 'ProjectName';
       this.sortOrder = 'ASC';
     }
+    this.pageNumber = 1;
+    this.loadProjects();
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.searchTerm = filterValue;
+    this.pageNumber = 1;
     this.loadProjects();
   }
 }

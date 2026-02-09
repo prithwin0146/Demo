@@ -15,53 +15,53 @@ public class DepartmentRepository : IDepartmentRepository
         _context = context;
     }
 
-    public async Task<List<Department>> GetAllAsync()
+    public List<Department> GetAll()
     {
-        return await _context.Departments
+        return _context.Departments
             .OrderBy(d => d.DepartmentName)
-            .ToListAsync();
+            .ToList();
     }
 
-    public async Task<Department?> GetByIdAsync(int id)
+    public Department? GetById(int id)
     {
-        return await _context.Departments
-            .FirstOrDefaultAsync(d => d.DepartmentId == id);
+        return _context.Departments
+            .FirstOrDefault(d => d.DepartmentId == id);
     }
 
-    public async Task<int> CreateAsync(Department department)
+    public int Create(Department department)
     {
         _context.Departments.Add(department);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return department.DepartmentId;
     }
 
-    public async Task<bool> UpdateAsync(int id, Department department)
+    public bool Update(int id, Department department)
     {
-        var existingDepartment = await _context.Departments.FindAsync(id);
+        var existingDepartment = _context.Departments.Find(id);
         if (existingDepartment == null) return false;
 
         existingDepartment.DepartmentName = department.DepartmentName;
         existingDepartment.Description = department.Description;
         existingDepartment.ManagerId = department.ManagerId;
 
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public bool Delete(int id)
     {
-        var department = await _context.Departments.FindAsync(id);
+        var department = _context.Departments.Find(id);
         if (department == null) return false;
 
         _context.Departments.Remove(department);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return true;
     }
 
-    public async Task<int> GetEmployeeCountAsync(int departmentId)
+    public int GetEmployeeCount(int departmentId)
     {
-        return await _context.Employees
-            .CountAsync(e => e.DepartmentId == departmentId);
+        return _context.Employees
+            .Count(e => e.DepartmentId == departmentId);
     }
 
     public async Task<(List<DepartmentPagedResult> Data, int TotalCount)> GetDepartmentsPagedAsync(PaginationRequest request)
@@ -71,7 +71,7 @@ public class DepartmentRepository : IDepartmentRepository
             new SqlParameter("@PageNumber", request.PageNumber),
             new SqlParameter("@PageSize", request.PageSize),
             new SqlParameter("@SortBy", request.SortBy ?? "DepartmentName"),
-            new SqlParameter("@SortOrder", request.Ascending ? "ASC" : "DESC"),
+            new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
             new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;

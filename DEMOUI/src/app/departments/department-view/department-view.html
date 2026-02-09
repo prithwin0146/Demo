@@ -1,125 +1,110 @@
 <div class="container">
-  <h1>Department Details</h1>
+  <mat-spinner *ngIf="loading" diameter="50"></mat-spinner>
 
-  <div *ngIf="loading" class="loader-container">
-    <div class="spinner"></div>
-    <p>Loading department...</p>
+  <div *ngIf="error" class="error">
+    {{ error }}
+    <button mat-stroked-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to List
+    </button>
   </div>
 
-  <div *ngIf="error" class="error-alert">
-    <strong>Error:</strong> {{ error }}
-  </div>
-
-  <div *ngIf="department && !loading" class="details-container">
-    <div class="detail-row">
-      <span class="label">Department ID:</span>
-      <span class="value">{{ department.departmentId }}</span>
-    </div>
-
-    <div class="detail-row">
-      <span class="label">Department Name:</span>
-      <span class="value">{{ department.departmentName }}</span>
-    </div>
-
-    <div class="detail-row">
-      <span class="label">Description:</span>
-      <span class="value">{{ department.description || 'N/A' }}</span>
-    </div>
-
-    <div class="detail-row">
-      <span class="label">Manager:</span>
-      <span class="value">{{ department.managerName || 'No Manager' }}</span>
-    </div>
-
-    <div class="detail-row">
-      <span class="label">Number of Employees:</span>
-      <span class="value">{{ department.employeeCount }}</span>
-    </div>
-
-    <div class="button-group">
-      <button [routerLink]="['/departments/edit', department.departmentId]" class="btn-edit">
-        Edit Department
-      </button>
-      <button (click)="goBack()" class="btn-back">
-        Back to List
-      </button>
-    </div>
-
-    <!-- Employee List Section -->
-    <div class="employees-section">
-      <h2>
-        Employees in this Department
-        <span class="employee-count-badge">{{ totalRecords }}</span>
-      </h2>
-
-      <!-- Search Bar -->
-      <div class="search-container">
-        <input 
-          type="text" 
-          placeholder="Search employees..." 
-          (input)="onSearch($event)"
-          class="search-input"
-        />
-      </div>
-
-      <div *ngIf="loadingEmployees" class="loader-container">
-        <div class="spinner"></div>
-        <p>Loading employees...</p>
-      </div>
-
-      <div *ngIf="!loadingEmployees && employees.length === 0" class="no-employees">
-        <p>No employees found.</p>
-      </div>
-
-      <div *ngIf="!loadingEmployees && employees.length > 0" class="employees-table-container">
-        <table class="employees-table">
-          <thead>
-            <tr>
-              <th (click)="onSort('Id')" class="sortable">
-                Employee ID
-                <span *ngIf="sortBy === 'Id'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
-              </th>
-              <th (click)="onSort('Name')" class="sortable">
-                Name
-                <span *ngIf="sortBy === 'Name'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
-              </th>
-              <th (click)="onSort('Email')" class="sortable">
-                Email
-                <span *ngIf="sortBy === 'Email'">{{ sortOrder === 'ASC' ? '▲' : '▼' }}</span>
-              </th>
-              <th>Job Role</th>
-              <th>System Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let employee of employees">
-              <td>{{ employee.id }}</td>
-              <td>{{ employee.name }}</td>
-              <td>{{ employee.email }}</td>
-              <td>{{ employee.jobRole || 'N/A' }}</td>
-              <td>
-                <span class="role-badge" [ngClass]="'role-' + (employee.systemRole || 'employee').toLowerCase()">
-                  {{ employee.systemRole || 'Employee' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- Pagination Controls -->
-        <div class="pagination-controls">
-          <div class="pagination-info">
-            Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalRecords) }} of {{ totalRecords }} employees
-          </div>
-          <div class="pagination-buttons">
-            <button (click)="onPageChange(1)" [disabled]="currentPage === 1" class="page-btn">First</button>
-            <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="page-btn">Previous</button>
-            <span class="page-indicator">Page {{ currentPage }} of {{ totalPages }}</span>
-            <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages" class="page-btn">Next</button>
-            <button (click)="onPageChange(totalPages)" [disabled]="currentPage === totalPages" class="page-btn">Last</button>
-          </div>
+  <div *ngIf="!loading && !error && department">
+    <!-- Header Card -->
+    <mat-card class="header-card">
+      <mat-card-header>
+        <mat-card-title>{{ department.departmentName }}</mat-card-title>
+        <div class="header-actions">
+          <button *ngIf="canEdit" mat-raised-button color="warn" (click)="deleteDepartment()">
+            <mat-icon>delete</mat-icon>
+            Delete Department
+          </button>
+          <button mat-stroked-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Back to List
+          </button>
         </div>
-      </div>
-    </div>
+      </mat-card-header>
+    </mat-card>
+
+    <!-- Department Details Card -->
+    <mat-card class="details-card">
+      <mat-card-header>
+        <mat-card-title>Department Details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="detail-row">
+          <span class="label">Department ID:</span>
+          <span class="value">{{ department.departmentId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Description:</span>
+          <span class="value">{{ department.description || 'N/A' }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Manager:</span>
+          <span class="value">{{ department.managerName || 'No manager assigned' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Employees Section Card -->
+    <mat-card class="employees-section">
+      <mat-card-header>
+        <mat-card-title>Employees ({{ totalRecords }})</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="table-controls">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search employees</mat-label>
+            <input matInput (input)="onSearch($event)" [value]="searchTerm" placeholder="Search by name or role">
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <mat-spinner *ngIf="loadingEmployees" diameter="40"></mat-spinner>
+
+        <div *ngIf="!loadingEmployees && employees.length === 0" class="no-data">
+          No employees in this department.
+        </div>
+
+        <div *ngIf="!loadingEmployees && employees.length > 0">
+          <table mat-table [dataSource]="employees" class="employees-table mat-elevation-z2">
+            <ng-container matColumnDef="employeeId">
+              <th mat-header-cell *matHeaderCellDef (click)="onSort('EmployeeId')">Employee ID</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.id }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef (click)="onSort('Name')">Name</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef (click)="onSort('Email')">Email</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.email }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="jobRole">
+              <th mat-header-cell *matHeaderCellDef (click)="onSort('JobRole')">Job Role</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.jobRole }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+
+          <mat-paginator
+            [length]="totalRecords"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="currentPage - 1"
+            (page)="onPageEvent($event)"
+            showFirstLastButtons>
+          </mat-paginator>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 </div>

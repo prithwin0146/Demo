@@ -5,11 +5,11 @@ namespace EmployeeApi.Repositories;
 
 public interface IDepartmentRepository
 {
-    Task<List<Department>> GetAllAsync();
-    Task<Department?> GetByIdAsync(int id);
-    Task<int> CreateAsync(Department department);
-    Task<bool> UpdateAsync(int id, Department department);
-    Task<bool> DeleteAsync(int id);
-    Task<int> GetEmployeeCountAsync(int departmentId);
+    List<Department> GetAll();
+    Department? GetById(int id);
+    int Create(Department department);
+    bool Update(int id, Department department);
+    bool Delete(int id);
+    int GetEmployeeCount(int departmentId);
     Task<(List<DepartmentPagedResult> Data, int TotalCount)> GetDepartmentsPagedAsync(PaginationRequest request);
 }

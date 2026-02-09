@@ -1,32 +1,43 @@
 import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { EmployeeService } from '../employee.service';
 import { DepartmentService } from '../../departments/department.service';
+import { NotificationService } from '../../shared/services/notification.service';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-add-employee',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule
+  ],
   templateUrl: './add-employee.html',
   styleUrls: ['./add-employee.css']
 })
 export class AddEmployeeComponent implements OnInit {
-  name = '';
-  email = '';
-  jobRole = '';
-  systemRole = 'Employee';
-  password = '';
-  confirmPassword = '';
-  departmentId: number | null = null;
-  error: string | null = null;
-  
+  employeeForm: FormGroup;
+  saving = false;
+  hidePassword = true;
+  hideConfirmPassword = true;
+
   currentUserRole = '';
   canEditSystemRole = false;
   departments: any[] = [];
-  
+
   jobRoles = [
     'Software Engineer',
     'Senior Software Engineer',
@@ -41,19 +52,46 @@ export class AddEmployeeComponent implements OnInit {
     'Accountant',
     'Sales Executive'
   ];
-  
-  systemRoles = ['Admin', 'HR', 'Employee'];
+
+  systemRoles = ['Admin', 'HR', 'Manager', 'Employee'];
 
   constructor(
+    private fb: FormBuilder,
     private empService: EmployeeService,
     private departmentService: DepartmentService,
+    private notificationService: NotificationService,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
+    this.employeeForm = this.fb.group({
+      name: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      jobRole: ['', Validators.required],
+      systemRole: ['Employee', Validators.required],
+      departmentId: [null],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(8)]]
+    }, { validators: this.passwordMatchValidator });
+  }
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.detectUserRole();
     this.loadDepartments();
+  }
+
+  passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
+
+    if (!password || !confirmPassword) {
+      return null;
+    }
+
+    return password.value === confirmPassword.value ? null : { passwordMismatch: true };
   }
 
   loadDepartments(): void {
@@ -63,18 +101,23 @@ export class AddEmployeeComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading departments:', err);
+        this.notificationService.showError('Failed to load departments');
       }
     });
   }
 
   detectUserRole(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const token = isPlatformBrowser(this.platformId) ? localStorage.getItem('token') : null;
+      const token = localStorage.getItem('token');
       if (token) {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           this.currentUserRole = payload.role || payload.Role || payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || '';
-          this.canEditSystemRole = this.currentUserRole === 'Admin' || this.currentUserRole === 'HR';
+          this.canEditSystemRole = this.currentUserRole === 'Admin' || this.currentUserRole === 'HR' || this.currentUserRole === 'Manager';
+
+          if (!this.canEditSystemRole) {
+            this.employeeForm.get('systemRole')?.disable();
+          }
         } catch (e) {
           console.error('Error parsing token', e);
         }
@@ -82,45 +125,52 @@ export class AddEmployeeComponent implements OnInit {
     }
   }
 
-  dismissError(): void {
-    this.error = null;
-  }
-
-  goBack(): void {
-    this.router.navigate(['/employees']);
-  }
-
-  save(): void {
-    if (!this.name || !this.email || !this.jobRole || !this.password || !this.confirmPassword) {
-      this.error = 'Please fill in all fields';
+  onSubmit(): void {
+    if (this.employeeForm.invalid) {
+      this.employeeForm.markAllAsTouched();
       return;
     }
 
-    if (this.password.length < 8) {
-      this.error = 'Password must be at least 8 characters long';
-      return;
-    }
-
-    if (this.password !== this.confirmPassword) {
-      this.error = 'Passwords do not match';
-      return;
-    }
+    this.saving = true;
+    const formValue = this.employeeForm.getRawValue();
 
     const employee = {
-      name: this.name,
-      email: this.email,
-      jobRole: this.jobRole,
-      systemRole: this.systemRole,
-      password: this.password,
-      departmentId: this.departmentId
+      name: formValue.name,
+      email: formValue.email,
+      jobRole: formValue.jobRole,
+      systemRole: formValue.systemRole,
+      password: formValue.password,
+      departmentId: formValue.departmentId
     };
 
-    this.error = null;
+    console.log('📤 Sending employee data:', employee);
     this.empService.createEmployee(employee).subscribe({
-      next: () => this.router.navigate(['/employees']),
+      next: () => {
+        this.notificationService.showSuccess('Employee added successfully!');
+        this.router.navigate(['/employees']);
+      },
       error: (err) => {
-        this.error = err.error?.message || 'Failed to add employee';
+        console.error('❌ Full error object:', err);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Error response:', err.error);
+
+        let errorMessage = 'Failed to add employee. Please try again.';
+
+        if (err.status === 409) {
+          errorMessage = 'Email already exists. Please use a different email address.';
+        } else if (err.error?.message) {
+          errorMessage = err.error.message;
+        } else if (typeof err.error === 'string') {
+          errorMessage = err.error;
+        }
+
+        this.notificationService.showError(errorMessage);
+        this.saving = false;
       }
     });
+  }
+
+  cancel(): void {
+    this.router.navigate(['/employees']);
   }
 }

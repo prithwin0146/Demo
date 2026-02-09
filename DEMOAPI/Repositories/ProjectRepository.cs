@@ -15,26 +15,26 @@ public class ProjectRepository : IProjectRepository
         _context = context;
     }
 
-    public async Task<List<Project>> GetAllAsync()
+    public List<Project> GetAll()
     {
-        return await _context.Projects.ToListAsync();
+        return _context.Projects.ToList();
     }
 
-    public async Task<Project?> GetByIdAsync(int id)
+    public Project? GetById(int id)
     {
-        return await _context.Projects.FindAsync(id);
+        return _context.Projects.Find(id);
     }
 
-    public async Task<int> CreateAsync(Project project)
+    public int Create(Project project)
     {
         _context.Projects.Add(project);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return project.ProjectId;
     }
 
-    public async Task<bool> UpdateAsync(int id, Project project)
+    public bool Update(int id, Project project)
     {
-        var existingProject = await _context.Projects.FindAsync(id);
+        var existingProject = _context.Projects.Find(id);
         if (existingProject == null) return false;
 
         existingProject.ProjectName = project.ProjectName;
@@ -43,17 +43,17 @@ public class ProjectRepository : IProjectRepository
         existingProject.EndDate = project.EndDate;
         existingProject.Status = project.Status;
 
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return true;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public bool Delete(int id)
     {
-        var project = await _context.Projects.FindAsync(id);
+        var project = _context.Projects.Find(id);
         if (project == null) return false;
 
         _context.Projects.Remove(project);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return true;
     }
 
@@ -64,7 +64,7 @@ public class ProjectRepository : IProjectRepository
             new SqlParameter("@PageNumber", request.PageNumber),
             new SqlParameter("@PageSize", request.PageSize),
             new SqlParameter("@SortBy", request.SortBy ?? "ProjectName"),
-            new SqlParameter("@SortOrder", request.Ascending ? "ASC" : "DESC"),
+            new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
             new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;

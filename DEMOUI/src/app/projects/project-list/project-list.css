@@ -4,22 +4,26 @@
   margin: 0 auto;
 }
 
-.header {
+h1 {
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 30px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.button-group {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.header-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-h2 {
-  color: #333;
-  margin: 0;
-  font-size: 28px;
+.search-field {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 20px;
 }
 
 .btn {

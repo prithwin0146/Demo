@@ -4,10 +4,10 @@ namespace EmployeeApi.Services;
 
 public interface IProjectService
 {
-    Task<List<ProjectDto>> GetAllAsync();
-    Task<ProjectDto?> GetByIdAsync(int id);
-    Task<int> CreateAsync(CreateProjectDto createDto);
-    Task<bool> UpdateAsync(int id, UpdateProjectDto updateDto);
-    Task<bool> DeleteAsync(int id);
+    List<ProjectDto> GetAll();
+    ProjectDto? GetById(int id);
+    int Create(CreateProjectDto createDto);
+    bool Update(int id, UpdateProjectDto updateDto);
+    bool Delete(int id);
     Task<PagedResponse<ProjectDto>> GetProjectsPagedAsync(PaginationRequest request);
 }

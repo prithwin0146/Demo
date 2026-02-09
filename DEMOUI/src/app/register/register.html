@@ -1,75 +1,89 @@
 <div class="register-container">
-  <div class="register-card">
-    <h2>Create User Account</h2>
-    
-    <!-- Error Alert -->
-    <div *ngIf="error" class="error-alert">
-      <strong>Error:</strong> {{ error }}
-      <button (click)="dismissError()" class="btn-close">✕</button>
-    </div>
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>
+        <h2>Create User Account</h2>
+      </mat-card-title>
+    </mat-card-header>
 
-    <!-- Registration Form -->
-    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
-      <!-- Username Field -->
-      <div class="form-group">
-        <label for="username">Username:</label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          [(ngModel)]="user.username"
-          required
-          placeholder="Enter your username"
-          class="form-control"
-        />
-        <span *ngIf="error && !user.username" class="error-text">Username is required</span>
+    <mat-card-content>
+      <!-- Error Alert -->
+      <div *ngIf="error" class="error-alert">
+        <span><strong>Error:</strong> {{ error }}</span>
+        <button mat-icon-button (click)="dismissError()" class="btn-close">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
 
-      <!-- Email Field -->
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          [(ngModel)]="user.email"
-          required
-          email
-          placeholder="Enter your email"
-          class="form-control"
-        />
-        <span *ngIf="registerForm.submitted && !user.email" class="error-text">Email is required</span>
-        <span *ngIf="registerForm.submitted && user.email && !isValidEmail(user.email)" class="error-text">Please enter a valid email</span>
-      </div>
+      <!-- Registration Form -->
+      <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
+        <!-- Username Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Username</mat-label>
+          <input
+            matInput
+            type="text"
+            [(ngModel)]="user.username"
+            name="username"
+            #username="ngModel"
+            required
+            placeholder="Enter your username"
+          />
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-error *ngIf="username.invalid && username.touched">
+            Username is required
+          </mat-error>
+        </mat-form-field>
 
-      <!-- Password Field -->
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          [(ngModel)]="user.password"
-          required
-          minlength="6"
-          placeholder="Enter password (min 6 characters)"
-          class="form-control"
-        />
-        <span *ngIf="registerForm.submitted && !user.password" class="error-text">Password is required</span>
-        <span *ngIf="registerForm.submitted && user.password && user.password.length < 6" class="error-text">Password must be at least 6 characters</span>
-      </div>
+        <!-- Email Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            [(ngModel)]="user.email"
+            name="email"
+            #email="ngModel"
+            required
+            placeholder="Enter your email"
+          />
+          <mat-icon matPrefix>email</mat-icon>
+          <mat-error *ngIf="email.invalid && email.touched">
+            <span *ngIf="email.errors?.['required']">Email is required</span>
+            <span *ngIf="email.errors?.['email'] || (user.email && !isValidEmail(user.email))">Please enter a valid email</span>
+          </mat-error>
+        </mat-form-field>
 
-      <!-- Submit Button -->
-      <button type="submit" [disabled]="loading" class="btn-submit">
-        {{ loading ? 'Creating Account...' : 'Create Account' }}
-      </button>
-    </form>
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            type="password"
+            [(ngModel)]="user.password"
+            name="password"
+            #password="ngModel"
+            required
+            minlength="6"
+            placeholder="Enter password (min 6 characters)"
+          />
+          <mat-icon matPrefix>lock</mat-icon>
+          <mat-error *ngIf="password.invalid && password.touched">
+            <span *ngIf="password.errors?.['required']">Password is required</span>
+            <span *ngIf="password.errors?.['minlength']">Password must be at least 6 characters</span>
+          </mat-error>
+        </mat-form-field>
 
-    <!-- Cancel Button -->
-    <div class="button-group">
-      <button (click)="goBack()" type="button" class="btn-cancel">
-        Cancel
-      </button>
-    </div>
-  </div>
+        <!-- Buttons -->
+        <div class="button-group">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loading" class="full-width">
+            {{ loading ? 'Creating Account...' : 'Create Account' }}
+          </button>
+          <button mat-button type="button" (click)="goBack()" class="full-width">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>

@@ -30,7 +30,6 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((err) => {
-      const platformId = inject(PLATFORM_ID);
       if (err.status === 401) {
         console.warn('Token expired or invalid, clearing storage and redirecting to login');
         if (isPlatformBrowser(platformId)) {

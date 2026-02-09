@@ -5,7 +5,7 @@ namespace EmployeeApi.DTOs
         public int Id { get; set; }
         public string? Username { get; set; }
         public string Email { get; set; } = null!;
-        public string Role { get; set; } = null!;  // Admin | HR | Employee
+        public string Role { get; set; } = null!;  // Admin | HR | Manager | Employee
     }
 
     public class RegisterUserDto
@@ -25,6 +25,6 @@ namespace EmployeeApi.DTOs
     public class LoginResponseDto
     {
         public string Token { get; set; } = null!;
-        public string Role { get; set; } = null!;  // Include role in login response
+        public string Role { get; set; } = null!;  // Admin | HR | Manager | Employee
     }
 }

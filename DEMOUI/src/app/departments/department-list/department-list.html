@@ -3,67 +3,93 @@
 
   <!-- Loader -->
   <div *ngIf="loading" class="loader-container">
-    <div class="spinner"></div>
+    <mat-spinner diameter="50"></mat-spinner>
     <p>Loading departments...</p>
   </div>
 
   <!-- Error Alert -->
   <div *ngIf="error" class="error-alert">
     <strong>Error:</strong> {{ error }}
-    <button (click)="dismissError()" class="btn-close">✕</button>
+    <button mat-icon-button (click)="dismissError()" class="btn-close">
+      <mat-icon>close</mat-icon>
+    </button>
   </div>
 
   <!-- Content -->
   <div *ngIf="!loading" class="content">
-    
+
     <div class="button-group">
-      <button 
-        *ngIf="isAdmin || isHR" 
-        [routerLink]="['/departments/add']" 
-        class="btn-add">
+      <button
+        *ngIf="isAdmin || isHR || isManager"
+        mat-raised-button
+        color="primary"
+        [routerLink]="['/departments/add']">
+        <mat-icon>add</mat-icon>
         Add Department
-      </button>
-      <button 
-        [routerLink]="['/employees']" 
-        class="btn-projects">
-        Employees
-      </button>
-      <button 
-        [routerLink]="['/projects']" 
-        class="btn-projects">
-        Projects
-      </button>
-      <button (click)="logout()" class="btn-logout">
-        Logout
       </button>
     </div>
 
-    <!-- Department Table -->
+    <!-- Search -->
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search departments</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Search by name...">
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <!-- Material Table -->
     <div *ngIf="departments && departments.length > 0; else noDepartments" class="table-container">
-      <table class="employee-table">
-        <thead>
-          <tr>
-            <th>DEPARTMENT NAME</th>
-            <th>DESCRIPTION</th>
-            <th>MANAGER</th>
-            <th>EMPLOYEES</th>
-            <th>ACTIONS</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let dept of departments">
-            <td>{{ dept.departmentName }}</td>
-            <td>{{ dept.description || 'N/A' }}</td>
-            <td>{{ dept.managerName || 'No Manager' }}</td>
-            <td>{{ dept.employeeCount }}</td>
-            <td class="actions">
-              <button (click)="viewDepartment(dept.departmentId)" class="btn-view">View</button>
-              <button *ngIf="isAdmin || isHR" (click)="editDepartment(dept.departmentId)" class="btn-edit">Edit</button>
-              <button *ngIf="isAdmin" (click)="deleteDepartment(dept)" class="btn-delete">Delete</button>
-            </td>
-          </tr>
-        </tbody>
+      <table mat-table [dataSource]="departments" matSort (matSortChange)="onSortChange($event)">
+
+        <!-- Department Name Column -->
+        <ng-container matColumnDef="departmentName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Department Name</th>
+          <td mat-cell *matCellDef="let dept">{{ dept.departmentName }}</td>
+        </ng-container>
+
+        <!-- Description Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <td mat-cell *matCellDef="let dept">{{ dept.description || 'N/A' }}</td>
+        </ng-container>
+
+        <!-- Manager Column -->
+        <ng-container matColumnDef="managerName">
+          <th mat-header-cell *matHeaderCellDef>Manager</th>
+          <td mat-cell *matCellDef="let dept">{{ dept.managerName || 'No Manager' }}</td>
+        </ng-container>
+
+        <!-- Employee Count Column -->
+        <ng-container matColumnDef="employeeCount">
+          <th mat-header-cell *matHeaderCellDef>Employees</th>
+          <td mat-cell *matCellDef="let dept">{{ dept.employeeCount }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let dept" class="actions">
+            <button mat-icon-button color="primary" (click)="viewDepartment(dept.departmentId)" title="View">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button *ngIf="isAdmin || isHR || isManager" mat-icon-button color="accent" (click)="editDepartment(dept.departmentId)" title="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
+
+      <!-- Material Paginator -->
+      <mat-paginator
+        [length]="totalRecords"
+        [pageSize]="pageSize"
+        [pageIndex]="pageNumber - 1"
+        [pageSizeOptions]="[10, 25, 50, 100]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
 
     <!-- No Departments Message -->

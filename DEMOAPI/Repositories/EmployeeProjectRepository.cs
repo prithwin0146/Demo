@@ -1,14 +1,19 @@
 using EmployeeApi.Models;
 using EmployeeApi.DTOs;
 using Microsoft.EntityFrameworkCore;
+using EmployeeApi.Extensions;
+using Microsoft.Data.SqlClient;
 
 namespace EmployeeApi.Repositories;
 
 public interface IEmployeeProjectRepository
 {
-    Task<List<EmployeeProjectDto>> GetByProjectIdAsync(int projectId);
-    Task<int> AssignAsync(AssignEmployeeDto dto);
-    Task<bool> RemoveAsync(int employeeId, int projectId);
+    List<EmployeeProjectDto> GetByProjectId(int projectId);
+    int Assign(AssignEmployeeDto dto);
+    bool Remove(int employeeId, int projectId);
+    Task<(List<EmployeeProjectPagedResult> Data, int TotalCount)> GetEmployeeProjectsPagedAsync(
+        int projectId,
+        PaginationRequest request);
 }
 
 public class EmployeeProjectRepository : IEmployeeProjectRepository
@@ -21,9 +26,9 @@ public class EmployeeProjectRepository : IEmployeeProjectRepository
     }
 
     // GET BY PROJECT ID
-    public async Task<List<EmployeeProjectDto>> GetByProjectIdAsync(int projectId)
+    public List<EmployeeProjectDto> GetByProjectId(int projectId)
     {
-        var results = await _context.EmployeeProjects
+        var results = _context.EmployeeProjects
             .Where(ep => ep.ProjectId == projectId)
             .Join(_context.Employees,
                 ep => ep.EmployeeId,
@@ -36,13 +41,13 @@ public class EmployeeProjectRepository : IEmployeeProjectRepository
                     Role = ep.Role,
                     AssignedDate = ep.AssignedDate
                 })
-            .ToListAsync();
+            .ToList();
 
         return results;
     }
 
     // ASSIGN EMPLOYEE TO PROJECT
-    public async Task<int> AssignAsync(AssignEmployeeDto dto)
+    public int Assign(AssignEmployeeDto dto)
     {
         var employeeProject = new EmployeeProject
         {
@@ -53,23 +58,42 @@ public class EmployeeProjectRepository : IEmployeeProjectRepository
         };
 
         _context.EmployeeProjects.Add(employeeProject);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
 
         return employeeProject.EmployeeProjectId;
     }
 
     // REMOVE EMPLOYEE FROM PROJECT
-    public async Task<bool> RemoveAsync(int employeeId, int projectId)
+    public bool Remove(int employeeId, int projectId)
     {
-        var employeeProject = await _context.EmployeeProjects
-            .FirstOrDefaultAsync(ep => ep.EmployeeId == employeeId && ep.ProjectId == projectId);
+        var employeeProject = _context.EmployeeProjects
+            .FirstOrDefault(ep => ep.EmployeeId == employeeId && ep.ProjectId == projectId);
 
         if (employeeProject == null)
             return false;
 
         _context.EmployeeProjects.Remove(employeeProject);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
 
         return true;
+    }
+
+    // GET EMPLOYEE PROJECTS PAGED
+    public async Task<(List<EmployeeProjectPagedResult> Data, int TotalCount)> GetEmployeeProjectsPagedAsync(
+        int projectId,
+        PaginationRequest request)
+    {
+        var results = await _context.LoadStoredProc<EmployeeProjectPagedResult>(
+            "sp_GetEmployeeProjectsPaged",
+            new SqlParameter("@ProjectId", projectId),
+            new SqlParameter("@PageNumber", request.PageNumber),
+            new SqlParameter("@PageSize", request.PageSize),
+            new SqlParameter("@SortBy", request.SortBy ?? "AssignedDate"),
+            new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
+            new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
+
+        var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
+
+        return (results.ToList(), totalRecords);
     }
 }

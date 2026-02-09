@@ -17,79 +17,97 @@ public class EmployeeRepository : IEmployeeRepository
     }
 
     // Get all 
-    public async Task<List<Employee>> GetAllAsync()
+    public List<Employee> GetAll()
     {
-        return await _context.Employees
+        return _context.Employees
             .OrderBy(e => e.Id)
-            .ToListAsync();
+            .ToList();
     }
 
     // Get by ID 
-    public async Task<Employee?> GetByIdAsync(int id)
+    public Employee? GetById(int id)
     {
-        return await _context.Employees
-            .FirstOrDefaultAsync(e => e.Id == id);
+        return _context.Employees
+            .FirstOrDefault(e => e.Id == id);
     }
 
     // Create (without password) 
-    public async Task<Employee> AddAsync(Employee emp)
+    public Employee Add(Employee emp)
     {
         emp.Role ??= "Employee";
         _context.Employees.Add(emp);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return emp;
     }
 
     // Create (with password) 
-    public async Task<Employee> AddWithPasswordAsync(Employee emp, string password)
+    public Employee AddWithPassword(Employee emp, string password)
     {
         emp.Role ??= "Employee";
-        
-        // Create employee
-        _context.Employees.Add(emp);
-        await _context.SaveChangesAsync();
 
-        // Create corresponding user with password
-        var user = new User
+        using var transaction = _context.Database.BeginTransaction();
+        try
         {
-            Username = emp.Name,
-            Email = emp.Email,
-            Password = password,
-            Role = emp.Role
-        };
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+            // Create employee
+            _context.Employees.Add(emp);
+            _context.SaveChanges();
 
-        return emp;
+            // Create corresponding user with password
+            var user = new User
+            {
+                Username = emp.Name,
+                Email = emp.Email,
+                Password = password,
+                Role = emp.Role
+            };
+            _context.Users.Add(user);
+            _context.SaveChanges();
+
+            transaction.Commit();
+            return emp;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    // Check if employee exists by email
+    public bool ExistsByEmail(string email)
+    {
+        return _context.Employees.Any(e => e.Email == email);
     }
 
     // Update 
-    public async Task<Employee> UpdateAsync(Employee emp)
+    public Employee Update(Employee emp)
     {
         emp.Role ??= "Employee";
         _context.Employees.Update(emp);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return emp;
     }
 
     // Delete
-    public async Task<Employee> DeleteAsync(Employee emp)
+    public Employee Delete(Employee emp)
     {
         _context.Employees.Remove(emp);
-        await _context.SaveChangesAsync();
+        _context.SaveChanges();
         return emp;
     }
     // Pagination 
-    public async Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null)
+    public async Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null)
     {
         var results = await _context.LoadStoredProc<EmployeePagedResult>(
             "sp_GetEmployeesPaged",
             new SqlParameter("@PageNumber", request.PageNumber),
             new SqlParameter("@PageSize", request.PageSize),
             new SqlParameter("@SortBy", request.SortBy ?? "Id"),
-            new SqlParameter("@SortOrder", request.Ascending ? "ASC" : "DESC"),
+            new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
             new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value),
-            new SqlParameter("@DepartmentId", (object?)departmentId ?? DBNull.Value));
+            new SqlParameter("@DepartmentId", (object?)departmentId ?? DBNull.Value),
+            new SqlParameter("@JobRole", (object?)jobRole ?? DBNull.Value),
+            new SqlParameter("@SystemRole", (object?)systemRole ?? DBNull.Value));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
 

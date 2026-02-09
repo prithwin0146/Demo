@@ -4,10 +4,10 @@ namespace EmployeeApi.Services;
 
 public interface IEmployeeService
 {
-    Task<List<EmployeeDto>> GetAllAsync();
-    Task<EmployeeDto> GetByIdAsync(int id);
-    Task<EmployeeDto> CreateAsync(CreateEmployeeDto dto);
-    Task<EmployeeDto> UpdateAsync(int id, UpdateEmployeeDto dto);
-    Task<EmployeeDto> DeleteAsync(int id);
-    Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null);
+    List<EmployeeDto> GetAll();
+    EmployeeDto GetById(int id);
+    EmployeeDto Create(CreateEmployeeDto dto);
+    EmployeeDto Update(int id, UpdateEmployeeDto dto);
+    EmployeeDto Delete(int id);
+    Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null);
 }

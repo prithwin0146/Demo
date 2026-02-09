@@ -17,17 +17,17 @@ public class DepartmentsController : ControllerBase
 
     // GET
     [HttpGet]
-    public async Task<ActionResult<List<DepartmentDto>>> GetAll()
+    public ActionResult<List<DepartmentDto>> GetAll()
     {
-        var departments = await _departmentService.GetAllAsync();
+        var departments = _departmentService.GetAll();
         return Ok(departments);
     }
 
     // GET BY ID
     [HttpGet("{id}")]
-    public async Task<ActionResult<DepartmentDto>> GetById(int id)
+    public ActionResult<DepartmentDto> GetById(int id)
     {
-        var department = await _departmentService.GetByIdAsync(id);
+        var department = _departmentService.GetById(id);
         if (department == null)
         {
             return NotFound(new { message = "Department not found" });
@@ -37,27 +37,27 @@ public class DepartmentsController : ControllerBase
 
     // POST
     [HttpPost]
-    public async Task<ActionResult<int>> Create([FromBody] CreateDepartmentDto createDto)
+    public ActionResult<int> Create([FromBody] CreateDepartmentDto createDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var departmentId = await _departmentService.CreateAsync(createDto);
+        var departmentId = _departmentService.Create(createDto);
         return CreatedAtAction(nameof(GetById), new { id = departmentId }, new { departmentId });
     }
 
     // PUT BY ID
     [HttpPut("{id}")]
-    public async Task<ActionResult> Update(int id, [FromBody] UpdateDepartmentDto updateDto)
+    public ActionResult Update(int id, [FromBody] UpdateDepartmentDto updateDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var success = await _departmentService.UpdateAsync(id, updateDto);
+        var success = _departmentService.Update(id, updateDto);
         if (!success)
         {
             return NotFound(new { message = "Department not found" });
@@ -68,11 +68,11 @@ public class DepartmentsController : ControllerBase
 
     // DELETE BY ID
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public ActionResult Delete(int id)
     {
         try
         {
-            var success = await _departmentService.DeleteAsync(id);
+            var success = _departmentService.Delete(id);
             if (!success)
             {
                 return NotFound(new { message = "Department not found" });

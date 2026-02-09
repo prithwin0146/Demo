@@ -42,7 +42,12 @@ export class AuthService {
 
   isHROrAdmin(): boolean {
     const role = this.getUserRole();
-    return role === 'HR' || role === 'Admin';
+    return role === 'HR' || role === 'Admin' || role === 'Manager';
+  }
+
+  isAdmin(): boolean {
+    const role = this.getUserRole();
+    return role === 'Admin' || role === 'Manager';
   }
 
   isEmployee(): boolean {

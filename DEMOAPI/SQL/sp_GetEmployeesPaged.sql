@@ -4,7 +4,9 @@ CREATE OR ALTER PROCEDURE sp_GetEmployeesPaged
     @SortBy NVARCHAR(50) = 'Id',
     @SortOrder NVARCHAR(4) = 'ASC',
     @SearchTerm NVARCHAR(100) = NULL,
-    @DepartmentId INT = NULL
+    @DepartmentId INT = NULL,
+    @JobRole NVARCHAR(50) = NULL,
+    @SystemRole NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -38,6 +40,8 @@ BEGIN
             OR e.Email LIKE ''%'' + @SearchTerm + ''%''
             OR e.JobRole LIKE ''%'' + @SearchTerm + ''%'')
             AND (@DepartmentId IS NULL OR e.DepartmentId = @DepartmentId)
+            AND (@JobRole IS NULL OR e.JobRole = @JobRole)
+            AND (@SystemRole IS NULL OR e.Role = @SystemRole)
     )
     SELECT 
         Id,
@@ -54,7 +58,7 @@ BEGIN
 
     -- Execute dynamic SQL
     EXEC sp_executesql @SQL,
-        N'@SearchTerm NVARCHAR(100), @DepartmentId INT, @Offset INT, @PageSize INT',
-        @SearchTerm, @DepartmentId, @Offset, @PageSize;
+        N'@SearchTerm NVARCHAR(100), @DepartmentId INT, @JobRole NVARCHAR(50), @SystemRole NVARCHAR(50), @Offset INT, @PageSize INT',
+        @SearchTerm, @DepartmentId, @JobRole, @SystemRole, @Offset, @PageSize;
 END
 GO  

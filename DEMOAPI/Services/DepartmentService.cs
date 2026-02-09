@@ -15,17 +15,17 @@ public class DepartmentService : IDepartmentService
         _repository = repository;
         _context = context;
     }
-
-    public async Task<List<DepartmentDto>> GetAllAsync()
+    // GET ALL
+    public List<DepartmentDto> GetAll()
     {
-        var departments = await _repository.GetAllAsync();
+        var departments = _repository.GetAll();
         var departmentDtos = new List<DepartmentDto>();
 
         foreach (var dept in departments)
         {
-            var employeeCount = await _repository.GetEmployeeCountAsync(dept.DepartmentId);
+            var employeeCount = _repository.GetEmployeeCount(dept.DepartmentId);
             var managerName = dept.ManagerId.HasValue
-                ? await GetManagerNameAsync(dept.ManagerId.Value)
+                ? GetManagerName(dept.ManagerId.Value)
                 : null;
 
             departmentDtos.Add(new DepartmentDto
@@ -41,15 +41,15 @@ public class DepartmentService : IDepartmentService
 
         return departmentDtos;
     }
-
-    public async Task<DepartmentDto?> GetByIdAsync(int id)
+    // GET BY ID
+    public DepartmentDto? GetById(int id)
     {
-        var dept = await _repository.GetByIdAsync(id);
+        var dept = _repository.GetById(id);
         if (dept == null) return null;
 
-        var employeeCount = await _repository.GetEmployeeCountAsync(dept.DepartmentId);
+        var employeeCount = _repository.GetEmployeeCount(dept.DepartmentId);
         var managerName = dept.ManagerId.HasValue
-            ? await GetManagerNameAsync(dept.ManagerId.Value)
+            ? GetManagerName(dept.ManagerId.Value)
             : null;
 
         return new DepartmentDto
@@ -62,8 +62,8 @@ public class DepartmentService : IDepartmentService
             EmployeeCount = employeeCount
         };
     }
-
-    public async Task<int> CreateAsync(CreateDepartmentDto createDto)
+    // CREATE
+    public int Create(CreateDepartmentDto createDto)
     {
         var department = new Department
         {
@@ -72,10 +72,10 @@ public class DepartmentService : IDepartmentService
             ManagerId = createDto.ManagerId
         };
 
-        return await _repository.CreateAsync(department);
+        return _repository.Create(department);
     }
-
-    public async Task<bool> UpdateAsync(int id, UpdateDepartmentDto updateDto)
+    // UPDATE
+    public bool Update(int id, UpdateDepartmentDto updateDto)
     {
         var department = new Department
         {
@@ -84,20 +84,20 @@ public class DepartmentService : IDepartmentService
             ManagerId = updateDto.ManagerId
         };
 
-        return await _repository.UpdateAsync(id, department);
+        return _repository.Update(id, department);
     }
-
-    public async Task<bool> DeleteAsync(int id)
+    // DELETE
+    public bool Delete(int id)
     {
-        var employeeCount = await _repository.GetEmployeeCountAsync(id);
+        var employeeCount = _repository.GetEmployeeCount(id);
         if (employeeCount > 0)
         {
             throw new InvalidOperationException("Cannot delete department with employees");
         }
 
-        return await _repository.DeleteAsync(id);
+        return _repository.Delete(id);
     }
-
+    // PAGINATION
     public async Task<PagedResponse<DepartmentDto>> GetDepartmentsPagedAsync(PaginationRequest request)
     {
         var (departments, totalRecords) = await _repository.GetDepartmentsPagedAsync(request);
@@ -123,9 +123,9 @@ public class DepartmentService : IDepartmentService
         };
     }
 
-    private async Task<string?> GetManagerNameAsync(int managerId)
+    private string? GetManagerName(int managerId)
     {
-        var employee = await _context.Employees.FindAsync(managerId);
+        var employee = _context.Employees.Find(managerId);
         return employee?.Name;
     }
 }

@@ -1,21 +1,46 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, PLATFORM_ID, Inject } from '@angular/core';
 import { EmployeeService } from '../employee.service';
 import { RouterLink, Router } from '@angular/router';
-import { NgFor, CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../login/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil, retryWhen, delay, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { take } from 'rxjs';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-employee-list',
   standalone: true,
   templateUrl: './employee-list.html',
   styleUrls: ['./employee-list.css'],
-  imports: [NgFor, RouterLink, CommonModule]
+  imports: [
+    RouterLink,
+    CommonModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatSelectModule
+  ]
 })
 export class EmployeeListComponent implements OnInit, OnDestroy {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
+
   employees: any[] = [];
+  displayedColumns: string[] = ['id', 'name', 'email', 'jobRole', 'systemRole', 'actions'];
   loading = true;
   error: string | null = null;
   private destroy$ = new Subject<void>();
@@ -32,10 +57,30 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   sortOrder: 'ASC' | 'DESC' = 'ASC';
   searchTerm = '';
 
+  // Filter properties
+  selectedJobRole: string = '';
+  selectedSystemRole: string = '';
+  jobRoles = [
+    'Software Engineer',
+    'Senior Software Engineer',
+    'Team Lead',
+    'Project Manager',
+    'Product Manager',
+    'QA Engineer',
+    'DevOps Engineer',
+    'Business Analyst',
+    'UI/UX Designer',
+    'HR Manager',
+    'Accountant',
+    'Sales Executive'
+  ];
+  systemRoles = ['Admin', 'HR', 'Manager', 'Employee'];
+
   // Role-based access
   currentUserRole: string = '';
   isAdmin = false;
   isHR = false;
+  isManager = false;
   isEmployee = false;
 
   // For template usage
@@ -45,14 +90,21 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     private employeeService: EmployeeService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     console.log('EmployeeListComponent initialized');
   }
 
   ngOnInit(): void {
     console.log('ngOnInit called - loading employees on page initialization/refresh');
-    
+
+    // Only load data in the browser, not during SSR
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      return;
+    }
+
     // Setup debounced search
     this.searchSubject$.pipe(
       debounceTime(300),
@@ -63,7 +115,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
       this.pageNumber = 1;
       this.loadEmployees();
     });
-    
+
     // Get user role from token
     const token = this.authService.getToken();
     console.log('Token:', token);
@@ -75,14 +127,16 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
         const roleLower = this.currentUserRole.toLowerCase();
         this.isAdmin = roleLower === 'admin';
         this.isHR = roleLower === 'hr';
+        this.isManager = roleLower === 'manager';
         this.isEmployee = roleLower === 'employee';
         console.log('Parsed role:', this.currentUserRole);
-        console.log('Role flags - Admin:', this.isAdmin, 'HR:', this.isHR, 'Employee:', this.isEmployee);
+        console.log('Role flags - Admin:', this.isAdmin, 'HR:', this.isHR, 'Manager:', this.isManager, 'Employee:', this.isEmployee);
       } catch (e) {
         console.error('Error parsing token:', e);
       }
     }
-    
+
+    this.updateDisplayedColumns();
     this.loadEmployees();
   }
 
@@ -92,12 +146,16 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees() {
-    console.log('loadEmployees called - Page:', this.pageNumber, 'Search:', this.searchTerm);
+    console.log(' loadEmployees called - Page:', this.pageNumber, 'PageSize:', this.pageSize, 'Search:', this.searchTerm);
+    console.log(' API URL will be: http://localhost:5127/api/Employees/paged?pageNumber=' + this.pageNumber + '&pageSize=' + this.pageSize);
     this.loading = true;
     this.error = null;
     this.retryCount = 0;
-    
-    this.employeeService.getEmployeesPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm)
+
+    this.employeeService.getEmployeesPaged(
+      this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm,
+      undefined, this.selectedJobRole || undefined, this.selectedSystemRole || undefined
+    )
       .pipe(
         retryWhen(errors => 
           errors.pipe(
@@ -201,6 +259,25 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     this.searchSubject$.next(term);
   }
 
+  onJobRoleFilterChange(value: string): void {
+    this.selectedJobRole = value;
+    this.pageNumber = 1;
+    this.loadEmployees();
+  }
+
+  onSystemRoleFilterChange(value: string): void {
+    this.selectedSystemRole = value;
+    this.pageNumber = 1;
+    this.loadEmployees();
+  }
+
+  clearFilters(): void {
+    this.selectedJobRole = '';
+    this.selectedSystemRole = '';
+    this.pageNumber = 1;
+    this.loadEmployees();
+  }
+
   clearSearch(input: HTMLInputElement) {
     input.value = '';
     this.searchTerm = '';
@@ -230,8 +307,44 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     }
   }
 
-  logout() {
-    this.authService.logout();
-    this.router.navigate(['/login'], { replaceUrl: true });
+  // Material Paginator event handler
+  onPageChange(event: PageEvent): void {
+    console.log(' PAGINATOR CLICKED! Event:', event);
+    console.log(' New page index:', event.pageIndex, 'New page number:', event.pageIndex + 1);
+    this.pageNumber = event.pageIndex + 1; // Material uses 0-based index
+    this.pageSize = event.pageSize;
+    console.log(' About to call loadEmployees with pageNumber:', this.pageNumber);
+    this.loadEmployees();
+  }
+
+  // Material Sort event handler
+  onSortChange(sort: Sort): void {
+    if (sort.direction) {
+      this.sortBy = sort.active.charAt(0).toUpperCase() + sort.active.slice(1); // Capitalize first letter
+      this.sortOrder = sort.direction === 'asc' ? 'ASC' : 'DESC';
+    } else {
+      this.sortBy = 'Id';
+      this.sortOrder = 'ASC';
+    }
+    this.pageNumber = 1;
+    this.loadEmployees();
+  }
+
+  // Search filter for Material table
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.search(filterValue);
+  }
+
+  // Determine columns to display based on role
+  updateDisplayedColumns(): void {
+    if (this.isAdmin) {
+      this.displayedColumns = ['id', 'name', 'email', 'jobRole', 'systemRole', 'actions'];
+    } else if (this.isHR || this.isManager) {
+      this.displayedColumns = ['id', 'name', 'email', 'jobRole', 'actions'];
+    } else {
+      // Employee role: no actions column
+      this.displayedColumns = ['id', 'name', 'email', 'jobRole'];
+    }
   }
 }
