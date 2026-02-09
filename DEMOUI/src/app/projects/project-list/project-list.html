@@ -31,7 +31,10 @@
 
     <!-- Material Table -->
     <div *ngIf="projects && projects.length > 0; else noProjects" class="table-container">
-      <table mat-table [dataSource]="projects" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="projects" matSort
+        [matSortActive]="matSortActive"
+        [matSortDirection]="matSortDir"
+        (matSortChange)="onSortChange($event)">
 
         <!-- Project Name Column -->
         <ng-container matColumnDef="projectName">

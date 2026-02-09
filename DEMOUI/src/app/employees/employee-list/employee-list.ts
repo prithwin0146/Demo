@@ -317,6 +317,15 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     this.loadEmployees();
   }
 
+  // Computed properties for MatSort binding (camelCase column names)
+  get matSortActive(): string {
+    return this.sortBy.charAt(0).toLowerCase() + this.sortBy.slice(1);
+  }
+
+  get matSortDir(): 'asc' | 'desc' | '' {
+    return this.sortOrder === 'DESC' ? 'desc' : 'asc';
+  }
+
   // Material Sort event handler
   onSortChange(sort: Sort): void {
     if (sort.direction) {

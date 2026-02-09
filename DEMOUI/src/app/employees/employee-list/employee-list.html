@@ -74,7 +74,10 @@
 
     <!-- Employee Table -->
     <div *ngIf="employees && employees.length > 0; else noEmployees" class="table-container">
-      <table mat-table [dataSource]="employees" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="employees" matSort
+        [matSortActive]="matSortActive"
+        [matSortDirection]="matSortDir"
+        (matSortChange)="onSortChange($event)">
 
         <!-- ID Column -->
         <ng-container matColumnDef="id">

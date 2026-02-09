@@ -38,7 +38,10 @@
 
     <!-- Material Table -->
     <div *ngIf="departments && departments.length > 0; else noDepartments" class="table-container">
-      <table mat-table [dataSource]="departments" matSort (matSortChange)="onSortChange($event)">
+      <table mat-table [dataSource]="departments" matSort
+        [matSortActive]="matSortActive"
+        [matSortDirection]="matSortDir"
+        (matSortChange)="onSortChange($event)">
 
         <!-- Department Name Column -->
         <ng-container matColumnDef="departmentName">
