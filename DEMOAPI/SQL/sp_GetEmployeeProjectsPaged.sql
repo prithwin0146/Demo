@@ -67,5 +67,4 @@ BEGIN
 END;
 GO
 
-PRINT 'sp_GetEmployeeProjectsPaged created successfully!';
-GO
+

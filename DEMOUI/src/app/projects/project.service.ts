@@ -37,13 +37,15 @@ export class ProjectService {
     pageSize: number = 10,
     sortBy: string = 'ProjectName',
     sortOrder: 'ASC' | 'DESC' = 'ASC',
-    searchTerm: string = ''
+    searchTerm: string = '',
+    hasEmployeesOnly: boolean = false
   ): Observable<PagedResponse<Project>> {
     let params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
       .set('pageSize', pageSize.toString())
       .set('sortBy', sortBy)
-      .set('sortOrder', sortOrder);
+      .set('sortOrder', sortOrder)
+      .set('hasEmployeesOnly', hasEmployeesOnly.toString());
 
     if (searchTerm) {
       params = params.set('searchTerm', searchTerm);

@@ -14,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-project-list',
@@ -32,7 +33,8 @@ import { MatChipsModule } from '@angular/material/chips';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatChipsModule
+    MatChipsModule,
+    MatSlideToggleModule
   ]
 })
 export class ProjectListComponent implements OnInit {
@@ -40,7 +42,7 @@ export class ProjectListComponent implements OnInit {
   @ViewChild(MatSort) sort!: MatSort;
 
   projects: Project[] = [];
-  displayedColumns: string[] = ['projectName', 'status', 'startDate', 'endDate', 'actions'];
+  displayedColumns: string[] = ['projectName', 'status', 'startDate', 'endDate', 'assignedEmployees', 'actions'];
   loading = true;
   error: string | null = null;
   canEdit: boolean = false;
@@ -53,6 +55,9 @@ export class ProjectListComponent implements OnInit {
   sortBy = 'ProjectName';
   sortOrder: 'ASC' | 'DESC' = 'ASC';
   searchTerm = '';
+
+  // Toggle filter
+  hasEmployeesOnly = false;
 
   Math = Math;
 
@@ -82,7 +87,7 @@ export class ProjectListComponent implements OnInit {
     this.error = null;
     console.log('Loading projects...');
 
-    this.projectService.getProjectsPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm).subscribe({
+    this.projectService.getProjectsPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm, this.hasEmployeesOnly).subscribe({
       next: (response) => {
         console.log('Projects loaded:', response);
         this.projects = response.data;
@@ -102,9 +107,7 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  onSearch(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchTerm = input.value;
+  onToggleHasEmployees(): void {
     this.pageNumber = 1;
     this.loadProjects();
   }

@@ -100,6 +100,7 @@ namespace EmployeeApi.Models
             // Keyless entity for stored procedure results
             modelBuilder.Entity<EmployeeProjectDto>().HasNoKey();
             modelBuilder.Entity<EmployeeProjectPagedResult>().HasNoKey();
+            modelBuilder.Entity<ProjectPagedResult>().HasNoKey();
 
             base.OnModelCreating(modelBuilder);
         }

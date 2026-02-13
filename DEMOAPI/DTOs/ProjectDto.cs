@@ -24,4 +24,7 @@ public class ProjectDto
 
     [JsonPropertyName("assignedEmployees")]
     public int? AssignedEmployees { get; set; }
+
+    [JsonPropertyName("employeeNames")]
+    public string? EmployeeNames { get; set; }
 }

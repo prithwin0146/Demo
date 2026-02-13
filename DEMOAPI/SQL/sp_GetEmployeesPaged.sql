@@ -1,6 +1,14 @@
-CREATE OR ALTER PROCEDURE sp_GetEmployeesPaged
-    @PageNumber INT = 1,
-    @PageSize INT = 10,
+-- =============================================
+-- Employee Pagination with CTE
+-- =============================================
+
+IF OBJECT_ID('sp_GetEmployeesPaged', 'P') IS NOT NULL
+    DROP PROCEDURE sp_GetEmployeesPaged;
+GO
+
+CREATE PROCEDURE sp_GetEmployeesPaged
+    @PageNumber INT,
+    @PageSize INT,
     @SortBy NVARCHAR(50) = 'Id',
     @SortOrder NVARCHAR(4) = 'ASC',
     @SearchTerm NVARCHAR(100) = NULL,
@@ -11,20 +19,8 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validate sort column to prevent SQL injection
-    IF @SortBy NOT IN ('Id', 'Name', 'Email', 'JobRole')
-        SET @SortBy = 'Id';
-
-    IF @SortOrder NOT IN ('ASC', 'DESC')
-        SET @SortOrder = 'ASC';
-
-    -- Calculate offset
     DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
 
-    -- Build dynamic SQL for sorting
-    DECLARE @SQL NVARCHAR(MAX);
-
-    SET @SQL = N'
     WITH EmployeeCTE AS (
         SELECT 
             e.Id,
@@ -33,12 +29,22 @@ BEGIN
             e.JobRole,
             e.Role,
             e.DepartmentId,
-            COUNT(*) OVER() AS TotalCount
+            ROW_NUMBER() OVER (
+                ORDER BY
+                    CASE WHEN @SortBy = 'Id' AND @SortOrder = 'ASC' THEN e.Id END ASC,
+                    CASE WHEN @SortBy = 'Id' AND @SortOrder = 'DESC' THEN e.Id END DESC,
+                    CASE WHEN @SortBy = 'Name' AND @SortOrder = 'ASC' THEN e.Name END ASC,
+                    CASE WHEN @SortBy = 'Name' AND @SortOrder = 'DESC' THEN e.Name END DESC,
+                    CASE WHEN @SortBy = 'Email' AND @SortOrder = 'ASC' THEN e.Email END ASC,
+                    CASE WHEN @SortBy = 'Email' AND @SortOrder = 'DESC' THEN e.Email END DESC,
+                    CASE WHEN @SortBy = 'JobRole' AND @SortOrder = 'ASC' THEN e.JobRole END ASC,
+                    CASE WHEN @SortBy = 'JobRole' AND @SortOrder = 'DESC' THEN e.JobRole END DESC
+            ) AS RowNum
         FROM Employees e
         WHERE (@SearchTerm IS NULL 
-            OR e.Name LIKE ''%'' + @SearchTerm + ''%''
-            OR e.Email LIKE ''%'' + @SearchTerm + ''%''
-            OR e.JobRole LIKE ''%'' + @SearchTerm + ''%'')
+            OR e.Name LIKE '%' + @SearchTerm + '%'
+            OR e.Email LIKE '%' + @SearchTerm + '%'
+            OR e.JobRole LIKE '%' + @SearchTerm + '%')
             AND (@DepartmentId IS NULL OR e.DepartmentId = @DepartmentId)
             AND (@JobRole IS NULL OR e.JobRole = @JobRole)
             AND (@SystemRole IS NULL OR e.Role = @SystemRole)
@@ -50,15 +56,9 @@ BEGIN
         JobRole,
         Role,
         DepartmentId,
-        TotalCount
+        (SELECT COUNT(*) FROM EmployeeCTE) AS TotalCount
     FROM EmployeeCTE
-    ORDER BY ' + QUOTENAME(@SortBy) + ' ' + @SortOrder + '
-    OFFSET @Offset ROWS
-    FETCH NEXT @PageSize ROWS ONLY;';
-
-    -- Execute dynamic SQL
-    EXEC sp_executesql @SQL,
-        N'@SearchTerm NVARCHAR(100), @DepartmentId INT, @JobRole NVARCHAR(50), @SystemRole NVARCHAR(50), @Offset INT, @PageSize INT',
-        @SearchTerm, @DepartmentId, @JobRole, @SystemRole, @Offset, @PageSize;
-END
-GO  
+    WHERE RowNum > @Offset AND RowNum <= @Offset + @PageSize
+    ORDER BY RowNum;
+END;
+GO

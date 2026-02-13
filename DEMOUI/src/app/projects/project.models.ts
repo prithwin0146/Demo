@@ -5,6 +5,8 @@ export interface Project {
   startDate: string;
   endDate: string | null;
   status: string;
+  assignedEmployees?: number;
+  employeeNames?: string | null;
 }
 
 export interface CreateProject {

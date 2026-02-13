@@ -9,6 +9,7 @@ namespace EmployeeApi.Models
         public DateTime? EndDate { get; set; }
         public string Status { get; set; } = string.Empty;
         public int AssignedEmployees { get; set; }
+        public string? EmployeeNames { get; set; }  
         public int TotalCount { get; set; }
     }
 }

@@ -56,6 +56,3 @@ BEGIN
     ORDER BY RowNum;
 END;
 GO
-
-PRINT 'sp_GetDepartmentsPaged created successfully!';
-GO

@@ -89,7 +89,8 @@ public class ProjectService : IProjectService
             StartDate = p.StartDate,
             EndDate = p.EndDate,
             Status = p.Status,
-            AssignedEmployees = p.AssignedEmployees
+            AssignedEmployees = p.AssignedEmployees,
+            EmployeeNames = p.EmployeeNames
         }).ToList();
 
         return new PagedResponse<ProjectDto>

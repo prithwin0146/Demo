@@ -65,7 +65,8 @@ public class ProjectRepository : IProjectRepository
             new SqlParameter("@PageSize", request.PageSize),
             new SqlParameter("@SortBy", request.SortBy ?? "ProjectName"),
             new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
-            new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
+            new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value),
+            new SqlParameter("@HasEmployeesOnly", request.HasEmployeesOnly));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
 
