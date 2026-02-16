@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ApplicationRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -83,9 +83,14 @@ export class ProjectViewComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Only load data in the browser, not during SSR
     if (!isPlatformBrowser(this.platformId)) {
-      this.loading = false;
+      return;
+    }
+
+    this.canEdit = this.authService.isHROrAdmin();
+    if (!this.canEdit) {
+      this.notificationService.showError('You do not have permission to edit projects');
+      this.router.navigate(['/projects']);
       return;
     }
 

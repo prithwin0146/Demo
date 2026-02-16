@@ -1,6 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef, ApplicationRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ApplicationRef, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -66,7 +66,8 @@ export class EditProjectComponent implements OnInit {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private appRef: ApplicationRef,
-    private authService: AuthService
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.canEdit = this.authService.isHROrAdmin();
     this.projectForm = this.fb.group({
@@ -79,6 +80,11 @@ export class EditProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.canEdit = this.authService.isHROrAdmin();
     if (!this.canEdit) {
       this.notificationService.showError('You do not have permission to edit projects');
       this.router.navigate(['/projects']);

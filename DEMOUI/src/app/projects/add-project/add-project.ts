@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -35,14 +35,17 @@ export class AddProjectComponent implements OnInit {
   projectForm: FormGroup;
   saving = false;
   statuses = ['Active', 'Completed', 'On-Hold'];
+  canEdit: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private projectService: ProjectService,
     private notificationService: NotificationService,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.canEdit = this.authService.isHROrAdmin();
     this.projectForm = this.fb.group({
       projectName: ['', [Validators.required, Validators.minLength(2)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
@@ -53,7 +56,12 @@ export class AddProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.authService.isHROrAdmin()) {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    this.canEdit = this.authService.isHROrAdmin();
+    if (!this.canEdit) {
       this.notificationService.showError('You do not have permission to create projects');
       this.router.navigate(['/projects']);
     }
