@@ -126,6 +126,23 @@ mat-spinner {
   height: 36px;
 }
 
+.table-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.search-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.page-size-field {
+  width: 120px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .date-row {

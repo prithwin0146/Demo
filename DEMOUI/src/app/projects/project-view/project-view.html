@@ -58,38 +58,7 @@
     <mat-card class="employee-section">
       <mat-card-header>
         <mat-card-title>Assigned Employees</mat-card-title>
-        <button *ngIf="canEdit" mat-raised-button color="accent" (click)="toggleAssignForm()">
-          <mat-icon>{{ showAssignForm ? 'close' : 'add' }}</mat-icon>
-          {{ showAssignForm ? 'Cancel' : 'Assign Employee' }}
-        </button>
       </mat-card-header>
-
-      <!-- Assignment Form -->
-      <mat-card-content *ngIf="showAssignForm">
-        <div class="assign-form">
-          <mat-form-field appearance="outline">
-            <mat-label>Select Employee</mat-label>
-            <mat-select [(ngModel)]="selectedEmployeeId" (ngModelChange)="onEmployeeSelect()">
-              <mat-option [value]="0">-- Select Employee --</mat-option>
-              <mat-option *ngFor="let emp of availableEmployees" [value]="emp.id">
-                {{ emp.name }} - {{ emp.jobRole }}
-              </mat-option>
-            </mat-select>
-            <mat-icon matPrefix>person</mat-icon>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Role</mat-label>
-            <input matInput [(ngModel)]="assignRole" placeholder="Auto-filled from employee" readonly>
-            <mat-icon matPrefix>work</mat-icon>
-          </mat-form-field>
-
-          <button mat-raised-button color="primary" (click)="assignEmployee()">
-            <mat-icon>check</mat-icon>
-            Assign
-          </button>
-        </div>
-      </mat-card-content>
 
       <!-- Search and Page Size Controls -->
       <mat-card-content>
@@ -122,33 +91,24 @@
 
         <div *ngIf="!loadingEmployees && assignedEmployees.length > 0">
           <table mat-table [dataSource]="assignedEmployees" class="employees-table mat-elevation-z2">
-            <ng-container matColumnDef="employeeId">
+            <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef>Employee ID</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.employeeId }}</td>
+              <td mat-cell *matCellDef="let emp">{{ emp.id }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="employeeName">
+            <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef>Name</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.employeeName }}</td>
+              <td mat-cell *matCellDef="let emp">{{ emp.name }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="role">
-              <th mat-header-cell *matHeaderCellDef>Role</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.role || 'N/A' }}</td>
+            <ng-container matColumnDef="jobRole">
+              <th mat-header-cell *matHeaderCellDef>Job Role</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.jobRole || 'N/A' }}</td>
             </ng-container>
 
-            <ng-container matColumnDef="assignedDate">
-              <th mat-header-cell *matHeaderCellDef>Assigned Date</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef>Action</th>
-              <td mat-cell *matCellDef="let emp">
-                <button *ngIf="canEdit" mat-mini-fab color="warn" (click)="removeEmployee(emp.employeeId)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
+            <ng-container matColumnDef="email">
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.email }}</td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

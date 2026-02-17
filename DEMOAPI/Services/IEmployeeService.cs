@@ -9,5 +9,5 @@ public interface IEmployeeService
     EmployeeDto Create(CreateEmployeeDto dto);
     EmployeeDto Update(int id, UpdateEmployeeDto dto);
     EmployeeDto Delete(int id);
-    Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null);
+    Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null, int? projectId = null);
 }

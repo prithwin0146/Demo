@@ -7,7 +7,4 @@ public interface IEmployeeProjectService
     List<EmployeeProjectDto> GetByProjectId(int projectId);
     int Assign(AssignEmployeeDto dto);
     bool Remove(int employeeId, int projectId);
-    Task<PagedResponse<EmployeeProjectDto>> GetEmployeeProjectsPagedAsync(
-        int projectId,
-        PaginationRequest request);
 }

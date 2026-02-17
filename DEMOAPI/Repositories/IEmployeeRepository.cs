@@ -12,5 +12,5 @@ public interface IEmployeeRepository
     Employee Update(Employee emp);
     Employee Delete(Employee emp);
     bool ExistsByEmail(string email);
-    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null);
+    Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null, int? projectId = null);
 }

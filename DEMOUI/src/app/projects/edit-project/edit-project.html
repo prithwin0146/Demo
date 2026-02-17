@@ -107,52 +107,66 @@
           <mat-icon matPrefix>person</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="assign-field">
-          <mat-label>Role (Auto-filled)</mat-label>
-          <input matInput [(ngModel)]="assignRole" placeholder="Auto-filled from employee" readonly>
-          <mat-icon matPrefix>work</mat-icon>
-        </mat-form-field>
-
         <button mat-raised-button color="accent" (click)="assignEmployee()">
           <mat-icon>add</mat-icon>
           Assign
         </button>
       </div>
 
-      <!-- Assigned Employees Table -->
+      <!-- Search and Page Size Controls -->
       <div class="assigned-section">
-        <h4>Currently Assigned ({{ assignedEmployees.length }})</h4>
+        <h4>Currently Assigned ({{ totalRecords }})</h4>
 
-        <div *ngIf="assignedEmployees.length === 0" class="no-employees">
+        <div class="table-controls">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search employees</mat-label>
+            <input matInput (input)="onSearch($event)" [value]="searchTerm" placeholder="Search by name or role">
+            <mat-icon matPrefix>search</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="page-size-field">
+            <mat-label>Page Size</mat-label>
+            <mat-select [value]="pageSize" (selectionChange)="changePageSize($event.value)">
+              <mat-option [value]="5">5</mat-option>
+              <mat-option [value]="10">10</mat-option>
+              <mat-option [value]="25">25</mat-option>
+              <mat-option [value]="50">50</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <mat-spinner *ngIf="loadingEmployees" diameter="40"></mat-spinner>
+
+        <div *ngIf="!loadingEmployees && assignedEmployees.length === 0" class="no-employees">
           No employees assigned yet.
         </div>
 
-        <div *ngIf="assignedEmployees.length > 0" class="mat-elevation-z2">
+        <div *ngIf="!loadingEmployees && assignedEmployees.length > 0" class="mat-elevation-z2">
           <table mat-table [dataSource]="assignedEmployees" class="employees-table">
             <ng-container matColumnDef="employeeId">
               <th mat-header-cell *matHeaderCellDef>Employee ID</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.employeeId }}</td>
+              <td mat-cell *matCellDef="let emp">{{ emp.id }}</td>
             </ng-container>
 
             <ng-container matColumnDef="employeeName">
               <th mat-header-cell *matHeaderCellDef>Name</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.employeeName }}</td>
+              <td mat-cell *matCellDef="let emp">{{ emp.name }}</td>
             </ng-container>
 
             <ng-container matColumnDef="role">
               <th mat-header-cell *matHeaderCellDef>Role</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.role || 'N/A' }}</td>
+              <td mat-cell *matCellDef="let emp">{{ emp.jobRole || 'N/A' }}</td>
             </ng-container>
 
             <ng-container matColumnDef="assignedDate">
-              <th mat-header-cell *matHeaderCellDef>Assigned Date</th>
-              <td mat-cell *matCellDef="let emp">{{ emp.assignedDate | date: 'MMM d, yyyy' }}</td>
+              <th mat-header-cell *matHeaderCellDef>Email</th>
+              <td mat-cell *matCellDef="let emp">{{ emp.email }}</td>
             </ng-container>
 
             <ng-container matColumnDef="action">
               <th mat-header-cell *matHeaderCellDef>Action</th>
               <td mat-cell *matCellDef="let emp">
-                <button mat-mini-fab color="warn" (click)="removeEmployee(emp.employeeId, emp.employeeName)" [attr.aria-label]="'Remove ' + emp.employeeName">
+                <button mat-mini-fab color="warn" (click)="removeEmployee(emp.id, emp.name)" [attr.aria-label]="'Remove ' + emp.name">
                   <mat-icon>delete</mat-icon>
                 </button>
               </td>
@@ -161,6 +175,15 @@
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
+
+          <mat-paginator
+            [length]="totalRecords"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            [pageIndex]="currentPage - 1"
+            (page)="onPageEvent($event)"
+            showFirstLastButtons>
+          </mat-paginator>
         </div>
       </div>
     </div>

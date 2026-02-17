@@ -1,12 +1,12 @@
--- =============================================
--- Employee Pagination with CTE
--- =============================================
-
-IF OBJECT_ID('sp_GetEmployeesPaged', 'P') IS NOT NULL
-    DROP PROCEDURE sp_GetEmployeesPaged;
+USE [TaskDb]
+GO
+/****** Object:  StoredProcedure [dbo].[sp_GetEmployeesPaged]    Script Date: 17/02/2026 09:35:04 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE sp_GetEmployeesPaged
+ALTER PROCEDURE [dbo].[sp_GetEmployeesPaged]
     @PageNumber INT,
     @PageSize INT,
     @SortBy NVARCHAR(50) = 'Id',
@@ -14,7 +14,8 @@ CREATE PROCEDURE sp_GetEmployeesPaged
     @SearchTerm NVARCHAR(100) = NULL,
     @DepartmentId INT = NULL,
     @JobRole NVARCHAR(50) = NULL,
-    @SystemRole NVARCHAR(50) = NULL
+    @SystemRole NVARCHAR(50) = NULL,
+    @ProjectId INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -48,6 +49,10 @@ BEGIN
             AND (@DepartmentId IS NULL OR e.DepartmentId = @DepartmentId)
             AND (@JobRole IS NULL OR e.JobRole = @JobRole)
             AND (@SystemRole IS NULL OR e.Role = @SystemRole)
+            AND (@ProjectId IS NULL OR EXISTS (
+                SELECT 1 FROM EmployeeProjects ep
+                WHERE ep.EmployeeId = e.Id AND ep.ProjectId = @ProjectId
+            ))
     )
     SELECT 
         Id,
@@ -61,4 +66,3 @@ BEGIN
     WHERE RowNum > @Offset AND RowNum <= @Offset + @PageSize
     ORDER BY RowNum;
 END;
-GO

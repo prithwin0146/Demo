@@ -74,7 +74,8 @@ export class EmployeeService {
     searchTerm: string = '',
     departmentId?: number,
     jobRole?: string,
-    systemRole?: string
+    systemRole?: string,
+    projectId?: number
   ): Observable<PagedResponse<any>> {
     let params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
@@ -96,6 +97,10 @@ export class EmployeeService {
 
     if (systemRole) {
       params = params.set('systemRole', systemRole);
+    }
+
+    if (projectId !== undefined && projectId !== null) {
+      params = params.set('projectId', projectId.toString());
     }
 
     const url = `${this.apiUrl}/paged?${params.toString()}`;

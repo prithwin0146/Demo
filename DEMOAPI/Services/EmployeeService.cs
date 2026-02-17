@@ -132,9 +132,9 @@ public class EmployeeService : IEmployeeService
     }
 
     //GET PAGED WITH STORED PROCEDURE
-    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null)
+    public async Task<PagedResponse<EmployeeDto>> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null, int? projectId = null)
     {
-        var (employees, totalRecords) = await _repository.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole);
+        var (employees, totalRecords) = await _repository.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole, projectId);
         var totalPages = (int)Math.Ceiling(totalRecords / (double)request.PageSize);
 
         return new PagedResponse<EmployeeDto>

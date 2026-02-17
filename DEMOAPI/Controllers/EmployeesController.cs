@@ -29,9 +29,10 @@ namespace EmployeeApi.Controllers
             [FromQuery] PaginationRequest request,
             [FromQuery] int? departmentId = null,
             [FromQuery] string? jobRole = null,
-            [FromQuery] string? systemRole = null)
+            [FromQuery] string? systemRole = null,
+            [FromQuery] int? projectId = null)
         {
-            return await _employeeService.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole);
+            return await _employeeService.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole, projectId);
         }
 
         // GET employee by id

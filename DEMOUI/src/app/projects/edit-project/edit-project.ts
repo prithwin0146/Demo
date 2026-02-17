@@ -11,6 +11,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { ProjectService } from '../project.service';
 import { NotificationService } from '../../shared/services/notification.service';
 import { UpdateProject } from '../project.models';
@@ -37,7 +38,8 @@ import { AuthService } from '../../login/auth.service';
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
-    MatTableModule
+    MatTableModule,
+    MatPaginatorModule
   ]
 })
 export class EditProjectComponent implements OnInit {
@@ -48,13 +50,26 @@ export class EditProjectComponent implements OnInit {
   statuses = ['Active', 'Completed', 'On-Hold'];
 
   employees: Employee[] = [];
-  assignedEmployees: EmployeeProjectDto[] = [];
+  assignedEmployees: any[] = [];
   availableEmployees: Employee[] = [];
   selectedEmployeeId: number = 0;
   assignRole: string = '';
   canEdit: boolean = false;
 
+  // Server-side pagination for assigned employees
+  currentPage = 1;
+  pageSize = 10;
+  totalRecords = 0;
+  totalPages = 0;
+  sortBy = 'Name';
+  sortOrder: 'ASC' | 'DESC' = 'ASC';
+  searchTerm = '';
+  loadingEmployees = false;
+
   displayedColumns: string[] = ['employeeId', 'employeeName', 'role', 'assignedDate', 'action'];
+
+  // Keep all assigned employee IDs for filtering available employees
+  private allAssignedIds: number[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -177,22 +192,45 @@ export class EditProjectComponent implements OnInit {
   }
 
   loadAssignedEmployees(): void {
-    this.employeeProjectService.getByProject(this.projectId).subscribe({
-      next: (data) => {
-        this.assignedEmployees = data;
-        this.updateAvailableEmployees();
+    this.loadingEmployees = true;
+    this.employeeService.getEmployeesPaged(
+      this.currentPage,
+      this.pageSize,
+      this.sortBy,
+      this.sortOrder,
+      this.searchTerm,
+      undefined,  // departmentId
+      undefined,  // jobRole
+      undefined,  // systemRole
+      this.projectId
+    ).subscribe({
+      next: (response) => {
+        this.assignedEmployees = response.data;
+        this.totalRecords = response.totalRecords;
+        this.totalPages = response.totalPages;
+        this.loadingEmployees = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading assigned employees:', err);
         this.notificationService.showError('Failed to load assigned employees');
+        this.loadingEmployees = false;
+        this.cdr.detectChanges();
       }
+    });
+
+    // Also load all assigned IDs for filtering the available employees dropdown
+    this.employeeProjectService.getByProject(this.projectId).subscribe({
+      next: (data) => {
+        this.allAssignedIds = data.map(e => e.employeeId);
+        this.updateAvailableEmployees();
+      },
+      error: () => {}
     });
   }
 
   updateAvailableEmployees(): void {
-    const assignedIds = this.assignedEmployees.map(e => e.employeeId);
-    this.availableEmployees = this.employees.filter(e => !assignedIds.includes(e.id));
+    this.availableEmployees = this.employees.filter(e => !this.allAssignedIds.includes(e.id));
   }
 
   onEmployeeSelect(): void {
@@ -221,6 +259,7 @@ export class EditProjectComponent implements OnInit {
     this.employeeProjectService.assign(assignment).subscribe({
       next: () => {
         this.notificationService.showSuccess('Employee assigned successfully');
+        this.currentPage = 1;
         this.loadAssignedEmployees();
         this.selectedEmployeeId = 0;
         this.assignRole = '';
@@ -237,6 +276,9 @@ export class EditProjectComponent implements OnInit {
       this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
         next: () => {
           this.notificationService.showSuccess('Employee removed successfully');
+          if (this.assignedEmployees.length === 1 && this.currentPage > 1) {
+            this.currentPage--;
+          }
           this.loadAssignedEmployees();
         },
         error: (err) => {
@@ -245,6 +287,25 @@ export class EditProjectComponent implements OnInit {
         }
       });
     }
+  }
+
+  onPageEvent(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1;
+    this.loadAssignedEmployees();
+  }
+
+  onSearch(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerm = input.value;
+    this.currentPage = 1;
+    this.loadAssignedEmployees();
+  }
+
+  changePageSize(newSize: number): void {
+    this.pageSize = newSize;
+    this.currentPage = 1;
+    this.loadAssignedEmployees();
   }
 
   deleteProject(): void {

@@ -96,7 +96,7 @@ public class EmployeeRepository : IEmployeeRepository
         return emp;
     }
     // Pagination 
-    public async Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null)
+    public async Task<(List<Employee> Data, int TotalCount)> GetEmployeesPagedAsync(PaginationRequest request, int? departmentId = null, string? jobRole = null, string? systemRole = null, int? projectId = null)
     {
         var results = await _context.LoadStoredProc<EmployeePagedResult>(
             "sp_GetEmployeesPaged",
@@ -107,7 +107,8 @@ public class EmployeeRepository : IEmployeeRepository
             new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value),
             new SqlParameter("@DepartmentId", (object?)departmentId ?? DBNull.Value),
             new SqlParameter("@JobRole", (object?)jobRole ?? DBNull.Value),
-            new SqlParameter("@SystemRole", (object?)systemRole ?? DBNull.Value));
+            new SqlParameter("@SystemRole", (object?)systemRole ?? DBNull.Value),
+            new SqlParameter("@ProjectId", (object?)projectId ?? DBNull.Value));
 
         var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
 

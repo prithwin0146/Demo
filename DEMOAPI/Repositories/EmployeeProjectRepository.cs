@@ -1,8 +1,6 @@
 using EmployeeApi.Models;
 using EmployeeApi.DTOs;
 using Microsoft.EntityFrameworkCore;
-using EmployeeApi.Extensions;
-using Microsoft.Data.SqlClient;
 
 namespace EmployeeApi.Repositories;
 
@@ -11,9 +9,6 @@ public interface IEmployeeProjectRepository
     List<EmployeeProjectDto> GetByProjectId(int projectId);
     int Assign(AssignEmployeeDto dto);
     bool Remove(int employeeId, int projectId);
-    Task<(List<EmployeeProjectPagedResult> Data, int TotalCount)> GetEmployeeProjectsPagedAsync(
-        int projectId,
-        PaginationRequest request);
 }
 
 public class EmployeeProjectRepository : IEmployeeProjectRepository
@@ -49,6 +44,12 @@ public class EmployeeProjectRepository : IEmployeeProjectRepository
     // ASSIGN EMPLOYEE TO PROJECT
     public int Assign(AssignEmployeeDto dto)
     {
+        var exists = _context.EmployeeProjects
+            .Any(ep => ep.EmployeeId == dto.EmployeeId && ep.ProjectId == dto.ProjectId);
+
+        if (exists)
+            return -1;
+
         var employeeProject = new EmployeeProject
         {
             EmployeeId = dto.EmployeeId,
@@ -76,24 +77,5 @@ public class EmployeeProjectRepository : IEmployeeProjectRepository
         _context.SaveChanges();
 
         return true;
-    }
-
-    // GET EMPLOYEE PROJECTS PAGED
-    public async Task<(List<EmployeeProjectPagedResult> Data, int TotalCount)> GetEmployeeProjectsPagedAsync(
-        int projectId,
-        PaginationRequest request)
-    {
-        var results = await _context.LoadStoredProc<EmployeeProjectPagedResult>(
-            "sp_GetEmployeeProjectsPaged",
-            new SqlParameter("@ProjectId", projectId),
-            new SqlParameter("@PageNumber", request.PageNumber),
-            new SqlParameter("@PageSize", request.PageSize),
-            new SqlParameter("@SortBy", request.SortBy ?? "AssignedDate"),
-            new SqlParameter("@SortOrder", request.SortOrder == "DESC" ? "DESC" : "ASC"),
-            new SqlParameter("@SearchTerm", (object?)request.SearchTerm ?? DBNull.Value));
-
-        var totalRecords = results.FirstOrDefault()?.TotalCount ?? 0;
-
-        return (results.ToList(), totalRecords);
     }
 }

@@ -23,21 +23,13 @@ public class EmployeeProjectsController : ControllerBase
         return Ok(assignments);
     }
 
-    // GET PAGED BY PROJECT ID (NEW - Returns paginated)
-    [HttpGet("project/{projectId}/paged")]
-    public async Task<ActionResult<PagedResponse<EmployeeProjectDto>>> GetByProjectPaged(
-        int projectId,
-        [FromQuery] PaginationRequest request)
-    {
-        var pagedResponse = await _service.GetEmployeeProjectsPagedAsync(projectId, request);
-        return Ok(pagedResponse);
-    }
-
     // POST
     [HttpPost]
     public ActionResult<int> Assign([FromBody] AssignEmployeeDto dto)
     {
         var id = _service.Assign(dto);
+        if (id == -1)
+            return Conflict(new { message = "Employee is already assigned to this project" });
         return Ok(id);
     }
 

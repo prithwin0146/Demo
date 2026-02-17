@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, ApplicationRef, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,10 +14,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { ProjectService } from '../project.service';
 import { Project } from '../project.models';
-import { EmployeeProjectService } from '../employee-project.service';
-import { EmployeeProjectDto, AssignEmployeeDto } from '../employee-project.models';
+
 import { EmployeeService } from '../../employees/employee.service';
-import { Employee } from '../../employees/employee.models';
+
 import { AuthService } from '../../login/auth.service';
 import { NotificationService } from '../../shared/services/notification.service';
 
@@ -28,7 +27,6 @@ import { NotificationService } from '../../shared/services/notification.service'
   styleUrls: ['./project-view.css'],
   imports: [
     CommonModule,
-    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -43,17 +41,12 @@ import { NotificationService } from '../../shared/services/notification.service'
 })
 export class ProjectViewComponent implements OnInit {
   project: Project | null = null;
-  assignedEmployees: EmployeeProjectDto[] = [];
+  assignedEmployees: any[] = [];
   loading = true;
   loadingEmployees = false;
   error: string | null = null;
   projectId!: number;
 
-  showAssignForm = false;
-  allEmployees: Employee[] = [];
-  availableEmployees: Employee[] = [];
-  selectedEmployeeId: number = 0;
-  assignRole: string = '';
   canEdit: boolean = false;
 
   // Pagination for assigned employees (server-side)
@@ -61,16 +54,15 @@ export class ProjectViewComponent implements OnInit {
   pageSize = 10;
   totalRecords = 0;
   totalPages = 0;
-  sortBy = 'AssignedDate';
-  sortOrder: 'ASC' | 'DESC' = 'DESC';
+  sortBy = 'Name';
+  sortOrder: 'ASC' | 'DESC' = 'ASC';
   searchTerm = '';
   Math = Math;
 
-  displayedColumns: string[] = ['employeeId', 'employeeName', 'role', 'assignedDate', 'action'];
+  displayedColumns: string[] = ['id', 'name', 'jobRole', 'email'];
 
   constructor(
     private projectService: ProjectService,
-    private employeeProjectService: EmployeeProjectService,
     private employeeService: EmployeeService,
     private route: ActivatedRoute,
     private router: Router,
@@ -98,7 +90,6 @@ export class ProjectViewComponent implements OnInit {
     if (id) {
       this.projectId = +id;
       this.loadProject();
-      this.loadAllEmployees();
     } else {
       this.error = 'Invalid project ID';
       this.loading = false;
@@ -131,20 +122,22 @@ export class ProjectViewComponent implements OnInit {
 
   loadAssignedEmployees(): void {
     this.loadingEmployees = true;
-    this.employeeProjectService.getEmployeeProjectsPaged(
-      this.projectId,
+    this.employeeService.getEmployeesPaged(
       this.currentPage,
       this.pageSize,
       this.sortBy,
       this.sortOrder,
-      this.searchTerm
+      this.searchTerm,
+      undefined,  // departmentId
+      undefined,  // jobRole
+      undefined,  // systemRole
+      this.projectId
     ).subscribe({
       next: (response) => {
         this.assignedEmployees = response.data;
         this.totalRecords = response.totalRecords;
         this.totalPages = response.totalPages;
         this.loadingEmployees = false;
-        this.updateAvailableEmployees();
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -206,95 +199,6 @@ export class ProjectViewComponent implements OnInit {
       this.currentPage--;
       this.loadAssignedEmployees();
     }
-  }
-
-  loadAllEmployees(): void {
-    this.employeeService.getEmployees().subscribe({
-      next: (data) => {
-        console.log('All employees loaded:', data);
-        this.allEmployees = data;
-        this.updateAvailableEmployees();
-      },
-      error: (err) => {
-        console.error('Error loading employees:', err);
-      }
-    });
-  }
-
-  updateAvailableEmployees(): void {
-    const assignedIds = this.assignedEmployees.map(e => e.employeeId);
-    this.availableEmployees = this.allEmployees.filter(e => !assignedIds.includes(e.id));
-    console.log('Available employees:', this.availableEmployees);
-  }
-
-  toggleAssignForm(): void {
-    this.showAssignForm = !this.showAssignForm;
-    if (!this.showAssignForm) {
-      this.selectedEmployeeId = 0;
-      this.assignRole = '';
-    }
-  }
-
-  onEmployeeSelect(): void {
-    console.log('Employee selected, ID:', this.selectedEmployeeId);
-    if (this.selectedEmployeeId > 0) {
-      const selectedEmployee = this.allEmployees.find(emp => emp.id === this.selectedEmployeeId);
-      console.log('Selected employee:', selectedEmployee);
-      if (selectedEmployee) {
-        this.assignRole = selectedEmployee.jobRole;
-        console.log('Auto-filled role:', this.assignRole);
-      }
-    } else {
-      this.assignRole = '';
-    }
-  }
-
-  assignEmployee(): void {
-    if (this.selectedEmployeeId <= 0) {
-      this.notificationService.showError('Please select an employee');
-      return;
-    }
-
-    const assignment: AssignEmployeeDto = {
-      employeeId: this.selectedEmployeeId,
-      projectId: this.projectId,
-      role: this.assignRole || null
-    };
-
-    this.employeeProjectService.assign(assignment).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Employee assigned successfully');
-        this.currentPage = 1;
-        this.loadAssignedEmployees();
-        this.selectedEmployeeId = 0;
-        this.assignRole = '';
-        this.showAssignForm = false;
-      },
-      error: (err) => {
-        console.error('Error assigning employee:', err);
-        this.notificationService.showError('Failed to assign employee. Please try again.');
-      }
-    });
-  }
-
-  removeEmployee(employeeId: number): void {
-    if (!confirm('Are you sure you want to remove this employee from the project?')) {
-      return;
-    }
-
-    this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
-      next: () => {
-        this.notificationService.showSuccess('Employee removed successfully');
-        if (this.assignedEmployees.length === 1 && this.currentPage > 1) {
-          this.currentPage--;
-        }
-        this.loadAssignedEmployees();
-      },
-      error: (err) => {
-        console.error('Error removing employee:', err);
-        this.notificationService.showError('Failed to remove employee. Please try again.');
-      }
-    });
   }
 
   deleteProject(): void {
