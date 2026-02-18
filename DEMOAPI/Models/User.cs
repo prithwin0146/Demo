@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace EmployeeApi.Models;
 
@@ -9,6 +10,7 @@ public partial class User
 
     public string? Username { get; set; }
 
+    [EmailAddress(ErrorMessage = "Invalid email format.")]
     public string Email { get; set; } = null!;
 
     public string Password { get; set; } = null!;

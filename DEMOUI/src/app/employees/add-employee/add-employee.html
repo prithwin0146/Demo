@@ -24,8 +24,8 @@
         <mat-error *ngIf="employeeForm.get('email')?.hasError('required')">
           Email is required
         </mat-error>
-        <mat-error *ngIf="employeeForm.get('email')?.hasError('email')">
-          Valid email is required
+        <mat-error *ngIf="employeeForm.get('email')?.hasError('email') || employeeForm.get('email')?.hasError('pattern')">
+          Please enter a valid email (e.g. name@example.com)
         </mat-error>
       </mat-form-field>
 

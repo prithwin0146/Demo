@@ -40,7 +40,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   @ViewChild(MatSort) sort!: MatSort;
 
   employees: any[] = [];
-  displayedColumns: string[] = ['id', 'name', 'email', 'jobRole', 'systemRole', 'actions'];
+  displayedColumns: string[] = ['name', 'email', 'jobRole', 'systemRole', 'actions'];
   loading = true;
   error: string | null = null;
   private destroy$ = new Subject<void>();
@@ -348,12 +348,12 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   // Determine columns to display based on role
   updateDisplayedColumns(): void {
     if (this.isAdmin) {
-      this.displayedColumns = ['id', 'name', 'email', 'jobRole', 'systemRole', 'actions'];
+      this.displayedColumns = ['name', 'email', 'jobRole', 'systemRole', 'actions'];
     } else if (this.isHR || this.isManager) {
-      this.displayedColumns = ['id', 'name', 'email', 'jobRole', 'actions'];
+      this.displayedColumns = ['name', 'email', 'jobRole', 'actions'];
     } else {
       // Employee role: no actions column
-      this.displayedColumns = ['id', 'name', 'email', 'jobRole'];
+      this.displayedColumns = ['name', 'email', 'jobRole'];
     }
   }
 }

@@ -21,28 +21,21 @@ import { AuthService } from '../../login/auth.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent implements OnInit {
-  username: string = 'User';
+username: string = 'User';
+role: string = 'Employee';
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+constructor(
+  private authService: AuthService,
+  private router: Router,
+  @Inject(PLATFORM_ID) private platformId: Object
+) {}
 
-  ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      const token = this.authService.getToken();
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          // Try different JWT claim names for username
-          this.username = payload.unique_name || payload.name || payload.sub || 'User';
-        } catch (e) {
-          console.error('Error parsing token for username:', e);
-        }
-      }
-    }
+ngOnInit(): void {
+  if (isPlatformBrowser(this.platformId)) {
+    this.username = this.authService.getUsername() || 'User';
+    this.role = this.authService.getUserRole() || 'Employee';
   }
+}
 
   logout(): void {
     this.authService.logout();

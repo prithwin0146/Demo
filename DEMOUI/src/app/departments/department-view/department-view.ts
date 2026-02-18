@@ -52,7 +52,7 @@ export class DepartmentViewComponent implements OnInit {
   // Make Math available in template
   Math = Math;
 
-  displayedColumns: string[] = ['employeeId', 'name', 'email', 'jobRole'];
+  displayedColumns: string[] = ['name', 'email', 'jobRole'];
 
   constructor(
     private departmentService: DepartmentService,

@@ -33,6 +33,13 @@ export class AuthService {
     return null;
   }
 
+  getUsername(): string | null {
+    if (isPlatformBrowser(this.platformId)) {
+      return localStorage.getItem('username');
+    }
+    return null;
+  }
+
   getUserRole(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem('userRole');
@@ -59,6 +66,7 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('token');
       localStorage.removeItem('userRole');
+      localStorage.removeItem('username');
     }
   }
 }

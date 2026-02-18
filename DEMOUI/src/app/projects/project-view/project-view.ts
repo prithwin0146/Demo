@@ -59,7 +59,7 @@ export class ProjectViewComponent implements OnInit {
   searchTerm = '';
   Math = Math;
 
-  displayedColumns: string[] = ['id', 'name', 'jobRole', 'email'];
+  displayedColumns: string[] = ['name', 'jobRole', 'email'];
 
   constructor(
     private projectService: ProjectService,

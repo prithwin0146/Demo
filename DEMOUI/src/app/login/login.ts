@@ -40,9 +40,19 @@ export class Login {
     this.error = null;
   }
 
+  isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
   login() {
     if (!this.email || !this.password) {
       this.error = 'Please enter both email and password';
+      return;
+    }
+
+    if (!this.isValidEmail(this.email)) {
+      this.error = 'Please enter a valid email address';
       return;
     }
 
@@ -56,6 +66,7 @@ export class Login {
           localStorage.setItem('token', res.token);
           const userRole = res.role || 'Employee';
           localStorage.setItem('userRole', userRole);
+          localStorage.setItem('username', res.username || 'User');
           console.log('Stored userRole:', userRole);
         }
         this.router.navigate(['/employees']);
