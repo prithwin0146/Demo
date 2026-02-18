@@ -20,6 +20,10 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IEmployeeProjectRepository, EmployeeProjectRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
+// Data Protection (for URL encryption)
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<IUrlEncryptionService, UrlEncryptionService>();
+
 // Services
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IUserService, UserService>();

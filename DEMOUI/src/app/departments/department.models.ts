@@ -1,5 +1,6 @@
 export interface Department {
   departmentId: number;
+  encryptedId: string;   // Encrypted ID for URL-safe operations
   departmentName: string;
   description: string | null;
   managerId: number | null;

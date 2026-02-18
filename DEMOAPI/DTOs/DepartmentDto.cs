@@ -7,6 +7,9 @@ public class DepartmentDto
     [JsonPropertyName("departmentId")]
     public int DepartmentId { get; set; }
 
+    [JsonPropertyName("encryptedId")]
+    public string EncryptedId { get; set; } = null!;
+
     [JsonPropertyName("departmentName")]
     public string DepartmentName { get; set; } = null!;
 

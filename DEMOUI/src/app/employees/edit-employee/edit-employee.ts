@@ -29,7 +29,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   styleUrls: ['./edit-employee.css']
 })
 export class EditEmployeeComponent implements OnInit {
-  id!: number;
+  encryptedId!: string;
   employeeForm: FormGroup;
   loading = false;
   saving = false;
@@ -86,9 +86,9 @@ export class EditEmployeeComponent implements OnInit {
 
   loadEmployee(): void {
     this.loading = true;
-    this.id = Number(this.route.snapshot.paramMap.get('id'));
+    this.encryptedId = this.route.snapshot.paramMap.get('id') || '';
 
-    this.empService.getEmployee(this.id).subscribe({
+    this.empService.getEmployee(this.encryptedId).subscribe({
       next: (emp) => {
         this.employeeForm.patchValue({
           name: emp.name,
@@ -157,7 +157,7 @@ export class EditEmployeeComponent implements OnInit {
       departmentId: formValue.departmentId
     };
 
-    this.empService.updateEmployee(this.id, employee).subscribe({
+    this.empService.updateEmployee(this.encryptedId, employee).subscribe({
       next: () => {
         this.notificationService.showSuccess('Employee updated successfully!');
         this.router.navigate(['/employees']);

@@ -9,16 +9,22 @@ namespace EmployeeApi.Controllers;
 public class EmployeeProjectsController : ControllerBase
 {
     private readonly IEmployeeProjectService _service;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public EmployeeProjectsController(IEmployeeProjectService service)
+    public EmployeeProjectsController(IEmployeeProjectService service, IUrlEncryptionService urlEncryption)
     {
         _service = service;
+        _urlEncryption = urlEncryption;
     }
 
-    // GET BY PROJECT ID (LEGACY - Returns all)
-    [HttpGet("project/{projectId}")]
-    public ActionResult<List<EmployeeProjectDto>> GetByProject(int projectId)
+    // GET BY PROJECT ENCRYPTED ID
+    [HttpGet("project/{encryptedProjectId}")]
+    public ActionResult<List<EmployeeProjectDto>> GetByProject(string encryptedProjectId)
     {
+        int projectId;
+        try { projectId = _urlEncryption.Decrypt(encryptedProjectId); }
+        catch { return BadRequest(new { message = "Invalid project ID" }); }
+
         var assignments = _service.GetByProjectId(projectId);
         return Ok(assignments);
     }
@@ -34,9 +40,17 @@ public class EmployeeProjectsController : ControllerBase
     }
 
     // DELETE
-    [HttpDelete("{employeeId}/{projectId}")]
-    public ActionResult Remove(int employeeId, int projectId)
+    [HttpDelete("{encryptedEmployeeId}/{encryptedProjectId}")]
+    public ActionResult Remove(string encryptedEmployeeId, string encryptedProjectId)
     {
+        int employeeId, projectId;
+        try
+        {
+            employeeId = _urlEncryption.Decrypt(encryptedEmployeeId);
+            projectId = _urlEncryption.Decrypt(encryptedProjectId);
+        }
+        catch { return BadRequest(new { message = "Invalid ID" }); }
+
         var result = _service.Remove(employeeId, projectId);
         if (!result)
             return NotFound();

@@ -116,7 +116,7 @@
               *ngIf="isAdmin || isManager"
               mat-icon-button
               color="primary"
-              [routerLink]="['/employees/edit', employee.id]"
+              [routerLink]="['/employees/edit', employee.encryptedId]"
               title="Edit">
               <mat-icon>edit</mat-icon>
             </button>
@@ -124,7 +124,7 @@
               *ngIf="isAdmin || isManager"
               mat-icon-button
               color="warn"
-              (click)="deleteEmployee(employee.id)"
+              (click)="deleteEmployee(employee.encryptedId)"
               title="Delete">
               <mat-icon>delete</mat-icon>
             </button>
@@ -134,7 +134,7 @@
               *ngIf="isHR && !isAdmin && !isManager"
               mat-icon-button
               color="primary"
-              [routerLink]="['/employees/edit', employee.id]"
+              [routerLink]="['/employees/edit', employee.encryptedId]"
               title="Edit">
               <mat-icon>edit</mat-icon>
             </button>

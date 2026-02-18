@@ -20,10 +20,26 @@ h1 {
   margin-bottom: 20px;
 }
 
+/* Search & Filter Row */
+.filter-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
 .search-field {
-  width: 100%;
-  max-width: 500px;
-  margin-bottom: 20px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-field {
+  width: 200px;
+}
+
+.clear-filters-btn {
+  height: 40px;
 }
 
 .employee-count {

@@ -7,12 +7,14 @@ namespace EmployeeApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class DepartmentsController : ControllerBase
-{
+{           
     private readonly IDepartmentService _departmentService;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public DepartmentsController(IDepartmentService departmentService)
+    public DepartmentsController(IDepartmentService departmentService, IUrlEncryptionService urlEncryption)
     {
         _departmentService = departmentService;
+        _urlEncryption = urlEncryption;
     }
 
     // GET
@@ -23,10 +25,14 @@ public class DepartmentsController : ControllerBase
         return Ok(departments);
     }
 
-    // GET BY ID
-    [HttpGet("{id}")]
-    public ActionResult<DepartmentDto> GetById(int id)
+    // GET BY ENCRYPTED ID
+    [HttpGet("{encryptedId}")]
+    public ActionResult<DepartmentDto> GetById(string encryptedId)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid department ID" }); }
+
         var department = _departmentService.GetById(id);
         if (department == null)
         {
@@ -45,13 +51,17 @@ public class DepartmentsController : ControllerBase
         }
 
         var departmentId = _departmentService.Create(createDto);
-        return CreatedAtAction(nameof(GetById), new { id = departmentId }, new { departmentId });
+        return CreatedAtAction(nameof(GetById), new { encryptedId = _urlEncryption.Encrypt(departmentId) }, new { departmentId });
     }
 
-    // PUT BY ID
-    [HttpPut("{id}")]
-    public ActionResult Update(int id, [FromBody] UpdateDepartmentDto updateDto)
+    // PUT BY ENCRYPTED ID
+    [HttpPut("{encryptedId}")]
+    public ActionResult Update(string encryptedId, [FromBody] UpdateDepartmentDto updateDto)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid department ID" }); }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -66,10 +76,14 @@ public class DepartmentsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE BY ID
-    [HttpDelete("{id}")]
-    public ActionResult Delete(int id)
+    // DELETE BY ENCRYPTED ID
+    [HttpDelete("{encryptedId}")]
+    public ActionResult Delete(string encryptedId)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid department ID" }); }
+
         try
         {
             var success = _departmentService.Delete(id);

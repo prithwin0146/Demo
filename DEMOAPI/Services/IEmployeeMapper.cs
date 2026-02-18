@@ -14,11 +14,19 @@ public interface IEmployeeMapper
 
 public class EmployeeMapper : IEmployeeMapper
 {
+    private readonly IUrlEncryptionService _urlEncryption;
+
+    public EmployeeMapper(IUrlEncryptionService urlEncryption)
+    {
+        _urlEncryption = urlEncryption;
+    }
+
     public EmployeeDto ToDto(Employee emp)
     {
         return new EmployeeDto
         {
             Id = emp.Id,
+            EncryptedId = _urlEncryption.Encrypt(emp.Id),
             Name = emp.Name,
             Email = emp.Email,
             JobRole = emp.JobRole,
@@ -45,6 +53,7 @@ public class EmployeeMapper : IEmployeeMapper
         return new EmployeeDto
         {
             Id = emp.Id,
+            EncryptedId = _urlEncryption.Encrypt(emp.Id),
             Name = emp.Name,
             Email = emp.Email,
             JobRole = emp.JobRole,

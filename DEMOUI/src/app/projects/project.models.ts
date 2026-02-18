@@ -1,5 +1,6 @@
 export interface Project {
   projectId: number;
+  encryptedId: string;   // Encrypted ID for URL-safe operations
   projectName: string;
   description: string;
   startDate: string;

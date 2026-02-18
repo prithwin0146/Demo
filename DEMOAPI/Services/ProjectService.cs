@@ -7,10 +7,12 @@ namespace EmployeeApi.Services;
 public class ProjectService : IProjectService
 {
     private readonly IProjectRepository _repository;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public ProjectService(IProjectRepository repository)
+    public ProjectService(IProjectRepository repository, IUrlEncryptionService urlEncryption)
     {
         _repository = repository;
+        _urlEncryption = urlEncryption;
     }
     // GET ALL  
     public List<ProjectDto> GetAll()
@@ -19,6 +21,7 @@ public class ProjectService : IProjectService
         return projects.Select(p => new ProjectDto
         {
             ProjectId = p.ProjectId,
+            EncryptedId = _urlEncryption.Encrypt(p.ProjectId),
             ProjectName = p.ProjectName,
             Description = p.Description,
             StartDate = p.StartDate,
@@ -35,6 +38,7 @@ public class ProjectService : IProjectService
         return new ProjectDto
         {
             ProjectId = project.ProjectId,
+            EncryptedId = _urlEncryption.Encrypt(project.ProjectId),
             ProjectName = project.ProjectName,
             Description = project.Description,
             StartDate = project.StartDate,
@@ -84,6 +88,7 @@ public class ProjectService : IProjectService
         var projectDtos = projects.Select(p => new ProjectDto
         {
             ProjectId = p.ProjectId,
+            EncryptedId = _urlEncryption.Encrypt(p.ProjectId),
             ProjectName = p.ProjectName,
             Description = p.Description,
             StartDate = p.StartDate,

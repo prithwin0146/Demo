@@ -1,7 +1,5 @@
 -- =============================================
 -- Project Pagination with CTE
--- @HasEmployeesOnly = 0: LEFT JOIN (all projects)
--- @HasEmployeesOnly = 1: INNER JOIN (staffed only)
 -- =============================================
 
 IF OBJECT_ID('sp_GetProjectsPaged', 'P') IS NOT NULL
@@ -14,7 +12,8 @@ CREATE PROCEDURE sp_GetProjectsPaged
     @SortBy NVARCHAR(50) = 'ProjectName',
     @SortOrder NVARCHAR(4) = 'ASC',
     @SearchTerm NVARCHAR(100) = NULL,
-    @HasEmployeesOnly BIT = 0
+    @HasEmployeesOnly BIT = 0,
+    @Status NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -52,6 +51,7 @@ BEGIN
                 OR p.ProjectName LIKE '%' + @SearchTerm + '%'
                 OR p.Description LIKE '%' + @SearchTerm + '%'
                 OR e.Name LIKE '%' + @SearchTerm + '%')
+                AND (@Status IS NULL OR p.Status = @Status)
             GROUP BY 
                 p.ProjectId,
                 p.ProjectName,
@@ -99,6 +99,7 @@ BEGIN
                 OR p.ProjectName LIKE '%' + @SearchTerm + '%'
                 OR p.Description LIKE '%' + @SearchTerm + '%'
                 OR e.Name LIKE '%' + @SearchTerm + '%')
+                AND (@Status IS NULL OR p.Status = @Status)
             GROUP BY 
                 p.ProjectId,
                 p.ProjectName,

@@ -46,6 +46,7 @@ export class ProjectViewComponent implements OnInit {
   loadingEmployees = false;
   error: string | null = null;
   projectId!: number;
+  encryptedId!: string;
 
   canEdit: boolean = false;
 
@@ -88,7 +89,7 @@ export class ProjectViewComponent implements OnInit {
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.projectId = +id;
+      this.encryptedId = id;
       this.loadProject();
     } else {
       this.error = 'Invalid project ID';
@@ -101,10 +102,11 @@ export class ProjectViewComponent implements OnInit {
     this.error = null;
     console.log('Loading project with ID:', this.projectId);
 
-    this.projectService.getProjectById(this.projectId).subscribe({
+    this.projectService.getProjectById(this.encryptedId).subscribe({
       next: (data) => {
         console.log('Project loaded:', data);
         this.project = data;
+        this.projectId = data.projectId;
         this.loading = false;
         this.loadAssignedEmployees();
         console.log('Loading set to false, project:', this.project);
@@ -206,7 +208,7 @@ export class ProjectViewComponent implements OnInit {
       return;
     }
 
-    this.projectService.deleteProject(this.projectId).subscribe({
+    this.projectService.deleteProject(this.encryptedId).subscribe({
       next: () => {
         console.log('Project deleted successfully');
         this.notificationService.showSuccess('Project deleted successfully');

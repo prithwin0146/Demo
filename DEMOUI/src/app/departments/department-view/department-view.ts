@@ -74,19 +74,19 @@ export class DepartmentViewComponent implements OnInit {
       return;
     }
 
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadDepartment(id);
+    const encryptedId = this.route.snapshot.paramMap.get('id') || '';
+    this.loadDepartment(encryptedId);
   }
 
-  loadDepartment(id: number): void {
+  loadDepartment(encryptedId: string): void {
     this.loading = true;
     this.error = null;
-    this.departmentService.getDepartmentById(id).subscribe({
+    this.departmentService.getDepartmentById(encryptedId).subscribe({
       next: (data) => {
         console.log('Department data received:', data);
         this.department = data;
         this.loading = false;
-        this.loadEmployees(id);
+        this.loadEmployees(data.departmentId);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -170,7 +170,7 @@ export class DepartmentViewComponent implements OnInit {
       return;
     }
 
-    this.departmentService.deleteDepartment(this.department.departmentId).subscribe({
+    this.departmentService.deleteDepartment(this.department.encryptedId).subscribe({
       next: () => {
         this.notificationService.showSuccess('Department deleted successfully');
         this.router.navigate(['/departments']);

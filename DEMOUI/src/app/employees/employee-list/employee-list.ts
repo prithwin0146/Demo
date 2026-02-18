@@ -290,9 +290,9 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     this.cdr.markForCheck();
   }
 
-  deleteEmployee(id: number) {
+  deleteEmployee(encryptedId: string) {
     if (confirm('Are you sure?')) {
-      this.employeeService.deleteEmployee(id)
+      this.employeeService.deleteEmployee(encryptedId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: () => {

@@ -7,6 +7,9 @@ public class ProjectDto
     [JsonPropertyName("projectId")]
     public int ProjectId { get; set; }
 
+    [JsonPropertyName("encryptedId")]
+    public string EncryptedId { get; set; } = null!;
+
     [JsonPropertyName("projectName")]
     public string ProjectName { get; set; } = null!;
 

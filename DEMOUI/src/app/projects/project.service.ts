@@ -16,20 +16,20 @@ export class ProjectService {
     return this.http.get<Project[]>(this.apiUrl);
   }
 
-  getProjectById(id: number): Observable<Project> {
-    return this.http.get<Project>(`${this.apiUrl}/${id}`);
+  getProjectById(encryptedId: string): Observable<Project> {
+    return this.http.get<Project>(`${this.apiUrl}/${encryptedId}`);
   }
 
   createProject(project: CreateProject): Observable<any> {
     return this.http.post(this.apiUrl, project);
   }
 
-  updateProject(id: number, project: UpdateProject): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, project);
+  updateProject(encryptedId: string, project: UpdateProject): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${encryptedId}`, project);
   }
 
-  deleteProject(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deleteProject(encryptedId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${encryptedId}`);
   }
 
   getProjectsPaged(
@@ -38,7 +38,8 @@ export class ProjectService {
     sortBy: string = 'ProjectName',
     sortOrder: 'ASC' | 'DESC' = 'ASC',
     searchTerm: string = '',
-    hasEmployeesOnly: boolean = false
+    hasEmployeesOnly: boolean = false,
+    status: string = ''
   ): Observable<PagedResponse<Project>> {
     let params = new HttpParams()
       .set('pageNumber', pageNumber.toString())
@@ -49,6 +50,10 @@ export class ProjectService {
 
     if (searchTerm) {
       params = params.set('searchTerm', searchTerm);
+    }
+
+    if (status) {
+      params = params.set('status', status);
     }
 
     return this.http.get<PagedResponse<Project>>(`${this.apiUrl}/paged`, { params });

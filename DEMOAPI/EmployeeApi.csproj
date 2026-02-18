@@ -8,9 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DEMOAPI\**" />
     <Compile Remove="DEMOUI\**" />
+    <Content Remove="DEMOAPI\**" />
     <Content Remove="DEMOUI\**" />
+    <EmbeddedResource Remove="DEMOAPI\**" />
     <EmbeddedResource Remove="DEMOUI\**" />
+    <None Remove="DEMOAPI\**" />
     <None Remove="DEMOUI\**" />
   </ItemGroup>
 

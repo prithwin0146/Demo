@@ -45,6 +45,7 @@ import { AuthService } from '../../login/auth.service';
 export class EditProjectComponent implements OnInit {
   projectForm: FormGroup;
   projectId!: number;
+  encryptedId!: string;
   loading = true;
   saving = false;
   statuses = ['Active', 'Completed', 'On-Hold'];
@@ -107,7 +108,7 @@ export class EditProjectComponent implements OnInit {
     }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.projectId = +id;
+      this.encryptedId = id;
       this.loadProject();
       this.loadEmployees();
       this.loadAssignedEmployees();
@@ -119,11 +120,12 @@ export class EditProjectComponent implements OnInit {
 
   loadProject(): void {
     this.loading = true;
-    console.log('Loading project for edit, ID:', this.projectId);
+    console.log('Loading project for edit, encrypted ID:', this.encryptedId);
 
-    this.projectService.getProjectById(this.projectId).subscribe({
+    this.projectService.getProjectById(this.encryptedId).subscribe({
       next: (data) => {
         console.log('Project data loaded:', data);
+        this.projectId = data.projectId;
         this.projectForm.patchValue({
           projectName: data.projectName,
           description: data.description,
@@ -161,7 +163,7 @@ export class EditProjectComponent implements OnInit {
       status: formValue.status
     };
 
-    this.projectService.updateProject(this.projectId, project).subscribe({
+    this.projectService.updateProject(this.encryptedId, project).subscribe({
       next: () => {
         this.notificationService.showSuccess('Project updated successfully!');
         this.router.navigate(['/projects']);
@@ -220,7 +222,7 @@ export class EditProjectComponent implements OnInit {
     });
 
     // Also load all assigned IDs for filtering the available employees dropdown
-    this.employeeProjectService.getByProject(this.projectId).subscribe({
+    this.employeeProjectService.getByProject(this.encryptedId).subscribe({
       next: (data) => {
         this.allAssignedIds = data.map(e => e.employeeId);
         this.updateAvailableEmployees();
@@ -271,9 +273,9 @@ export class EditProjectComponent implements OnInit {
     });
   }
 
-  removeEmployee(employeeId: number, employeeName: string): void {
+  removeEmployee(encryptedEmployeeId: string, employeeName: string): void {
     if (confirm(`Remove ${employeeName} from the project?`)) {
-      this.employeeProjectService.remove(employeeId, this.projectId).subscribe({
+      this.employeeProjectService.remove(encryptedEmployeeId, this.encryptedId).subscribe({
         next: () => {
           this.notificationService.showSuccess('Employee removed successfully');
           if (this.assignedEmployees.length === 1 && this.currentPage > 1) {
@@ -311,7 +313,7 @@ export class EditProjectComponent implements OnInit {
   deleteProject(): void {
     const projectName = this.projectForm.get('projectName')?.value || 'this project';
     if (confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
-      this.projectService.deleteProject(this.projectId).subscribe({
+      this.projectService.deleteProject(this.encryptedId).subscribe({
         next: () => {
           console.log('Project deleted successfully');
           this.notificationService.showSuccess('Project deleted successfully');

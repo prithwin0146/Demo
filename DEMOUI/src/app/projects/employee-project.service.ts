@@ -11,15 +11,15 @@ export class EmployeeProjectService {
 
   constructor(private http: HttpClient) {}
 
-  getByProject(projectId: number): Observable<EmployeeProjectDto[]> {
-    return this.http.get<EmployeeProjectDto[]>(`${this.apiUrl}/project/${projectId}`);
+  getByProject(encryptedProjectId: string): Observable<EmployeeProjectDto[]> {
+    return this.http.get<EmployeeProjectDto[]>(`${this.apiUrl}/project/${encryptedProjectId}`);
   }
 
   assign(dto: AssignEmployeeDto): Observable<number> {
     return this.http.post<number>(this.apiUrl, dto);
   }
 
-  remove(employeeId: number, projectId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${employeeId}/${projectId}`);
+  remove(encryptedEmployeeId: string, encryptedProjectId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${encryptedEmployeeId}/${encryptedProjectId}`);
   }
 }

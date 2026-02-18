@@ -1,5 +1,6 @@
 export interface Employee {
   id: number;
+  encryptedId: string;   // Encrypted ID for URL-safe operations
   name: string;
   email: string;
   jobRole: string;       // Business role: Developer, Manager, etc.

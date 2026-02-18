@@ -6,16 +6,24 @@ namespace EmployeeApi.Services;
 public class EmployeeProjectService : IEmployeeProjectService
 {
     private readonly IEmployeeProjectRepository _repository;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public EmployeeProjectService(IEmployeeProjectRepository repository)
+    public EmployeeProjectService(IEmployeeProjectRepository repository, IUrlEncryptionService urlEncryption)
     {
         _repository = repository;
+        _urlEncryption = urlEncryption;
     }
 
     // GET BY PROJECT ID
     public List<EmployeeProjectDto> GetByProjectId(int projectId)
     {
-        return _repository.GetByProjectId(projectId);
+        var results = _repository.GetByProjectId(projectId);
+        foreach (var dto in results)
+        {
+            dto.EncryptedEmployeeId = _urlEncryption.Encrypt(dto.EmployeeId);
+            dto.EncryptedProjectId = _urlEncryption.Encrypt(dto.ProjectId);
+        }
+        return results;
     }
 
     // ASSIGN EMPLOYEE TO PROJECT

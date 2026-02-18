@@ -30,7 +30,7 @@ import { UpdateDepartment } from '../department.models';
   styleUrls: ['./edit-department.css']
 })
 export class EditDepartmentComponent implements OnInit {
-  departmentId: number = 0;
+  encryptedId: string = '';
   departmentForm: FormGroup;
   employees: any[] = [];
   loading = false;
@@ -53,14 +53,14 @@ export class EditDepartmentComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.departmentId = Number(this.route.snapshot.paramMap.get('id'));
+    this.encryptedId = this.route.snapshot.paramMap.get('id') || '';
     this.loadDepartment();
     this.loadEmployees();
   }
 
   loadDepartment(): void {
     this.loading = true;
-    this.departmentService.getDepartmentById(this.departmentId).subscribe({
+    this.departmentService.getDepartmentById(this.encryptedId).subscribe({
       next: (data) => {
         console.log('Department data received:', data);
         this.departmentForm.patchValue({
@@ -112,7 +112,7 @@ export class EditDepartmentComponent implements OnInit {
       managerId: formValue.managerId
     };
 
-    this.departmentService.updateDepartment(this.departmentId, department).subscribe({
+    this.departmentService.updateDepartment(this.encryptedId, department).subscribe({
       next: () => {
         this.notificationService.showSuccess('Department updated successfully!');
         this.router.navigate(['/departments']);

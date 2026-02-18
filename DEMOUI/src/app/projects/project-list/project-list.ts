@@ -1,10 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ProjectService } from '../project.service';
 import { Project } from '../project.models';
 import { AuthService } from '../../login/auth.service';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
@@ -15,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-project-list',
@@ -34,12 +37,16 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatSelectModule
   ]
 })
-export class ProjectListComponent implements OnInit {
+export class ProjectListComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+
+  private destroy$ = new Subject<void>();
+  private searchSubject$ = new Subject<string>();
 
   projects: Project[] = [];
   displayedColumns: string[] = ['projectName', 'status', 'startDate', 'endDate', 'assignedEmployees', 'actions'];
@@ -58,6 +65,10 @@ export class ProjectListComponent implements OnInit {
 
   // Toggle filter
   hasEmployeesOnly = false;
+
+  // Status filter
+  selectedStatus = '';
+  statuses = ['Active', 'Completed', 'On-Hold'];
 
   Math = Math;
 
@@ -79,7 +90,23 @@ export class ProjectListComponent implements OnInit {
       return;
     }
 
+    // Setup debounced search
+    this.searchSubject$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.pageNumber = 1;
+      this.loadProjects();
+    });
+
     this.loadProjects();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadProjects(): void {
@@ -87,7 +114,7 @@ export class ProjectListComponent implements OnInit {
     this.error = null;
     console.log('Loading projects...');
 
-    this.projectService.getProjectsPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm, this.hasEmployeesOnly).subscribe({
+    this.projectService.getProjectsPaged(this.pageNumber, this.pageSize, this.sortBy, this.sortOrder, this.searchTerm, this.hasEmployeesOnly, this.selectedStatus).subscribe({
       next: (response) => {
         console.log('Projects loaded:', response);
         this.projects = response.data;
@@ -105,6 +132,11 @@ export class ProjectListComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onStatusFilterChange(): void {
+    this.pageNumber = 1;
+    this.loadProjects();
   }
 
   onToggleHasEmployees(): void {
@@ -180,7 +212,11 @@ export class ProjectListComponent implements OnInit {
 
   applyFilter(event: Event): void {
     const filterValue = (event.target as HTMLInputElement).value;
-    this.searchTerm = filterValue;
+    this.searchSubject$.next(filterValue);
+  }
+
+  clearFilters(): void {
+    this.selectedStatus = '';
     this.pageNumber = 1;
     this.loadProjects();
   }

@@ -49,18 +49,18 @@ export class EmployeeService {
     );
   }
 
-  getEmployee(id: number) {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  getEmployee(encryptedId: string) {
+    return this.http.get<any>(`${this.apiUrl}/${encryptedId}`);
   }
 
-  updateEmployee(id: number, employee: any) {
-    return this.http.put(`${this.apiUrl}/${id}`, employee).pipe(
+  updateEmployee(encryptedId: string, employee: any) {
+    return this.http.put(`${this.apiUrl}/${encryptedId}`, employee).pipe(
       tap(() => this.invalidateCache())
     );
   }
 
-  deleteEmployee(id: number) {
-    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
+  deleteEmployee(encryptedId: string) {
+    return this.http.delete(`${this.apiUrl}/${encryptedId}`).pipe(
       tap(() => this.invalidateCache())
     );
   }

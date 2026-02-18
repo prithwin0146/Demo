@@ -10,10 +10,12 @@ namespace EmployeeApi.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly IEmployeeService _employeeService;
+        private readonly IUrlEncryptionService _urlEncryption;
 
-        public EmployeesController(IEmployeeService employeeService)
+        public EmployeesController(IEmployeeService employeeService, IUrlEncryptionService urlEncryption)
         {
             _employeeService = employeeService;
+            _urlEncryption = urlEncryption;
         }
 
         // GET all employees
@@ -35,10 +37,14 @@ namespace EmployeeApi.Controllers
             return await _employeeService.GetEmployeesPagedAsync(request, departmentId, jobRole, systemRole, projectId);
         }
 
-        // GET employee by id
-        [HttpGet("{id}")]
-        public ActionResult<EmployeeDto> Get(int id)
+        // GET employee by encrypted id
+        [HttpGet("{encryptedId}")]
+        public ActionResult<EmployeeDto> Get(string encryptedId)
         {
+            int id;
+            try { id = _urlEncryption.Decrypt(encryptedId); }
+            catch { return BadRequest(new { message = "Invalid employee ID" }); }
+
             var employee = _employeeService.GetById(id);
             if (employee == null)
             {
@@ -71,9 +77,13 @@ namespace EmployeeApi.Controllers
         }
 
         // PUT update employee
-        [HttpPut("{id}")]
-        public ActionResult<EmployeeDto> Update(int id, UpdateEmployeeDto dto)
+        [HttpPut("{encryptedId}")]
+        public ActionResult<EmployeeDto> Update(string encryptedId, UpdateEmployeeDto dto)
         {
+            int id;
+            try { id = _urlEncryption.Decrypt(encryptedId); }
+            catch { return BadRequest(new { message = "Invalid employee ID" }); }
+
             try
             {
                 var employee = _employeeService.Update(id, dto);
@@ -90,9 +100,13 @@ namespace EmployeeApi.Controllers
         }
 
         // DELETE remove employee
-        [HttpDelete("{id}")]
-        public ActionResult<EmployeeDto> Delete(int id)
+        [HttpDelete("{encryptedId}")]
+        public ActionResult<EmployeeDto> Delete(string encryptedId)
         {
+            int id;
+            try { id = _urlEncryption.Decrypt(encryptedId); }
+            catch { return BadRequest(new { message = "Invalid employee ID" }); }
+
             try
             {
                 var employee = _employeeService.Delete(id);

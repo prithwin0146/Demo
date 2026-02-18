@@ -9,11 +9,13 @@ public class DepartmentService : IDepartmentService
 {
     private readonly IDepartmentRepository _repository;
     private readonly TaskDbContext _context;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public DepartmentService(IDepartmentRepository repository, TaskDbContext context)
+    public DepartmentService(IDepartmentRepository repository, TaskDbContext context, IUrlEncryptionService urlEncryption)
     {
         _repository = repository;
         _context = context;
+        _urlEncryption = urlEncryption;
     }
     // GET ALL
     public List<DepartmentDto> GetAll()
@@ -31,6 +33,7 @@ public class DepartmentService : IDepartmentService
             departmentDtos.Add(new DepartmentDto
             {
                 DepartmentId = dept.DepartmentId,
+                EncryptedId = _urlEncryption.Encrypt(dept.DepartmentId),
                 DepartmentName = dept.DepartmentName,
                 Description = dept.Description,
                 ManagerId = dept.ManagerId,
@@ -55,6 +58,7 @@ public class DepartmentService : IDepartmentService
         return new DepartmentDto
         {
             DepartmentId = dept.DepartmentId,
+            EncryptedId = _urlEncryption.Encrypt(dept.DepartmentId),
             DepartmentName = dept.DepartmentName,
             Description = dept.Description,
             ManagerId = dept.ManagerId,
@@ -106,6 +110,7 @@ public class DepartmentService : IDepartmentService
         var departmentDtos = departments.Select(d => new DepartmentDto
         {
             DepartmentId = d.DepartmentId,
+            EncryptedId = _urlEncryption.Encrypt(d.DepartmentId),
             DepartmentName = d.DepartmentName,
             Description = d.Description,
             ManagerId = d.ManagerId,

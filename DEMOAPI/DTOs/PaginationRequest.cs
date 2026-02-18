@@ -17,5 +17,6 @@ namespace EmployeeApi.DTOs
         public string SortOrder { get; set; } = "ASC";
         public string? SearchTerm { get; set; }
         public bool HasEmployeesOnly { get; set; } = false;
+        public string? Status { get; set; }
     }
 }

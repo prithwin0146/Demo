@@ -128,12 +128,12 @@ export class DepartmentListComponent implements OnInit, OnDestroy {
       });
   }
 
-  viewDepartment(id: number): void {
-    this.router.navigate(['/departments', id]);
+  viewDepartment(encryptedId: string): void {
+    this.router.navigate(['/departments', encryptedId]);
   }
 
-  editDepartment(id: number): void {
-    this.router.navigate(['/departments/edit', id]);
+  editDepartment(encryptedId: string): void {
+    this.router.navigate(['/departments/edit', encryptedId]);
   }
 
   dismissError(): void {

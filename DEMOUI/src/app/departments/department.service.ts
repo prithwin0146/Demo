@@ -33,8 +33,8 @@ export class DepartmentService {
     });
   }
 
-  getDepartmentById(id: number): Observable<Department> {
-    return this.http.get<Department>(`${this.apiUrl}/${id}`, {
+  getDepartmentById(encryptedId: string): Observable<Department> {
+    return this.http.get<Department>(`${this.apiUrl}/${encryptedId}`, {
       headers: this.getHeaders(),
     });
   }
@@ -45,14 +45,14 @@ export class DepartmentService {
     });
   }
 
-  updateDepartment(id: number, department: UpdateDepartment): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, department, {
+  updateDepartment(encryptedId: string, department: UpdateDepartment): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${encryptedId}`, department, {
       headers: this.getHeaders(),
     });
   }
 
-  deleteDepartment(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, {
+  deleteDepartment(encryptedId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${encryptedId}`, {
       headers: this.getHeaders(),
     });
   }

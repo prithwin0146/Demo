@@ -7,6 +7,12 @@ public class EmployeeProjectDto
     [JsonPropertyName("employeeProjectId")]
     public int EmployeeProjectId { get; set; }
 
+    [JsonPropertyName("encryptedEmployeeId")]
+    public string EncryptedEmployeeId { get; set; } = null!;
+
+    [JsonPropertyName("encryptedProjectId")]
+    public string EncryptedProjectId { get; set; } = null!;
+
     [JsonPropertyName("employeeId")]
     public int EmployeeId { get; set; }
 

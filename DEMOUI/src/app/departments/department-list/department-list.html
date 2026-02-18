@@ -71,10 +71,10 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let dept" class="actions">
-            <button mat-icon-button color="primary" (click)="viewDepartment(dept.departmentId)" title="View">
+            <button mat-icon-button color="primary" (click)="viewDepartment(dept.encryptedId)" title="View">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button *ngIf="isAdmin || isHR || isManager" mat-icon-button color="accent" (click)="editDepartment(dept.departmentId)" title="Edit">
+            <button *ngIf="isAdmin || isHR || isManager" mat-icon-button color="accent" (click)="editDepartment(dept.encryptedId)" title="Edit">
               <mat-icon>edit</mat-icon>
             </button>
           </td>

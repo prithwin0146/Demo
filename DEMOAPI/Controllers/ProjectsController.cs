@@ -9,10 +9,12 @@ namespace EmployeeApi.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly IUrlEncryptionService _urlEncryption;
 
-    public ProjectsController(IProjectService projectService)
+    public ProjectsController(IProjectService projectService, IUrlEncryptionService urlEncryption)
     {
         _projectService = projectService;
+        _urlEncryption = urlEncryption;
     }
     // GET
     [HttpGet]
@@ -21,10 +23,14 @@ public class ProjectsController : ControllerBase
         var projects = _projectService.GetAll();
         return Ok(projects);
     }
-    // GET BY ID
-    [HttpGet("{id}")]
-    public ActionResult<ProjectDto> GetById(int id)
+    // GET BY ENCRYPTED ID
+    [HttpGet("{encryptedId}")]
+    public ActionResult<ProjectDto> GetById(string encryptedId)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid project ID" }); }
+
         var project = _projectService.GetById(id);
         if (project == null)
         {
@@ -42,12 +48,16 @@ public class ProjectsController : ControllerBase
         }
 
         var projectId = _projectService.Create(createDto);
-        return CreatedAtAction(nameof(GetById), new { id = projectId }, new { projectId });
+        return CreatedAtAction(nameof(GetById), new { encryptedId = _urlEncryption.Encrypt(projectId) }, new { projectId });
     }
-    // PUT BY ID
-    [HttpPut("{id}")]
-    public ActionResult Update(int id, [FromBody] UpdateProjectDto updateDto)
+    // PUT BY ENCRYPTED ID
+    [HttpPut("{encryptedId}")]
+    public ActionResult Update(string encryptedId, [FromBody] UpdateProjectDto updateDto)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid project ID" }); }
+
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
@@ -62,10 +72,14 @@ public class ProjectsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE BY ID
-    [HttpDelete("{id}")]
-    public ActionResult Delete(int id)
+    // DELETE BY ENCRYPTED ID
+    [HttpDelete("{encryptedId}")]
+    public ActionResult Delete(string encryptedId)
     {
+        int id;
+        try { id = _urlEncryption.Decrypt(encryptedId); }
+        catch { return BadRequest(new { message = "Invalid project ID" }); }
+
         var success = _projectService.Delete(id);
         if (!success)
         {

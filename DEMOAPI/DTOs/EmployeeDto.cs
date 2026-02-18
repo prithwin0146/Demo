@@ -6,6 +6,9 @@ public class EmployeeDto
 {
     [JsonPropertyName("id")]
     public int Id { get; set; }
+
+    [JsonPropertyName("encryptedId")]
+    public string EncryptedId { get; set; } = null!;
     
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;

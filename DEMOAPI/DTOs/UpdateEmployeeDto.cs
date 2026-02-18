@@ -21,3 +21,4 @@ public class UpdateEmployeeDto
     [JsonPropertyName("departmentId")]
     public int? DepartmentId { get; set; }
 }
+
