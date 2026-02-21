@@ -8,7 +8,7 @@ public class UrlEncryptionService : IUrlEncryptionService
 
     public UrlEncryptionService(IDataProtectionProvider dataProtectionProvider)
     {
-        // "UrlEncryption" is a purpose string that isolates this protector
+    
         _protector = dataProtectionProvider.CreateProtector("UrlEncryption");
     }
 
