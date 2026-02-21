@@ -11,11 +11,26 @@ namespace EmployeeApi.Controllers
     {
         private readonly IEmployeeService _employeeService;
         private readonly IUrlEncryptionService _urlEncryption;
+        private readonly IEmailService _emailService;
 
-        public EmployeesController(IEmployeeService employeeService, IUrlEncryptionService urlEncryption)
+        public EmployeesController(IEmployeeService employeeService, IUrlEncryptionService urlEncryption, IEmailService emailService)
         {
             _employeeService = employeeService;
             _urlEncryption = urlEncryption;
+            _emailService = emailService;
+        }
+
+        //Test email 
+        [HttpGet("test-email")]
+        public IActionResult TestEmail()
+        {
+            _emailService.SendEmail(
+                "prithwin0146@gmail.com",
+                "Test Email",
+                "<h3>Email working successfully</h3>"
+            );
+
+            return Ok("Email Sent");
         }
 
         // GET all employees
