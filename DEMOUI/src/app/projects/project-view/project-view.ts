@@ -81,11 +81,6 @@ export class ProjectViewComponent implements OnInit {
     }
 
     this.canEdit = this.authService.isHROrAdmin();
-    if (!this.canEdit) {
-      this.notificationService.showError('You do not have permission to edit projects');
-      this.router.navigate(['/projects']);
-      return;
-    }
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {

@@ -111,7 +111,6 @@ export class EditProjectComponent implements OnInit {
       this.encryptedId = id;
       this.loadProject();
       this.loadEmployees();
-      this.loadAssignedEmployees();
     } else {
       this.notificationService.showError('Invalid project ID');
       this.loading = false;
@@ -126,6 +125,7 @@ export class EditProjectComponent implements OnInit {
       next: (data) => {
         console.log('Project data loaded:', data);
         this.projectId = data.projectId;
+        this.loadAssignedEmployees();
         this.projectForm.patchValue({
           projectName: data.projectName,
           description: data.description,

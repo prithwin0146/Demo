@@ -1,7 +1,15 @@
 <div class="container">
-  <div class="form-card">
+  <div class="header">
     <h2>Edit Department</h2>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="cancel()">
+        <mat-icon>arrow_back</mat-icon>
+        Back to Departments
+      </button>
+    </div>
+  </div>
 
+  <div class="form-card">
     <mat-spinner *ngIf="loading" diameter="50"></mat-spinner>
 
     <form [formGroup]="departmentForm" (ngSubmit)="onSubmit()" *ngIf="!loading">
