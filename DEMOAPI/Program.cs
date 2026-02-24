@@ -1,11 +1,12 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using System.Text;
 using EmployeeApi.Models;
 using EmployeeApi.Services;
 using EmployeeApi.Repositories;
+using EmployeeApi.GrpcServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,10 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Controllers
 builder.Services.AddControllers();
+
+// gRPC
+builder.Services.AddGrpc();
+builder.Services.AddGrpcReflection();
 
 //CORS
 builder.Services.AddCors(options =>
@@ -93,4 +98,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// gRPC endpoints
+app.MapGrpcService<EmployeeGrpcService>();
+app.MapGrpcService<DepartmentGrpcService>();
+app.MapGrpcService<NotificationGrpcService>();
+app.MapGrpcReflectionService();
+
 app.Run();

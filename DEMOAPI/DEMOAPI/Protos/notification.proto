@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "EmployeeApi.Grpc";
+
+package notification;
+
+// gRPC service for sending notifications (simulates a Notification microservice)
+service NotificationGrpc {
+  rpc SendEmail (SendEmailRequest) returns (SendEmailResponse);
+}
+
+message SendEmailRequest {
+  string to_email = 1;
+  string subject = 2;
+  string body = 3;
+}
+
+message SendEmailResponse {
+  bool success = 1;
+  string message = 2;
+}

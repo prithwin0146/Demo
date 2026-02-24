@@ -73,6 +73,33 @@ public class EmployeeProjectService : IEmployeeProjectService
     // REMOVE EMPLOYEE FROM PROJECT
     public bool Remove(int employeeId, int projectId)
     {
-        return _repository.Remove(employeeId, projectId);
+        var removed = _repository.Remove(employeeId, projectId);
+        if (!removed)
+            return false;
+
+        var employee = _employeeService.GetById(employeeId);
+        var project = _projectService.GetById(projectId);
+
+        if (employee != null && project != null)
+        {
+            var toEmail = employee.Email;
+            var subject = $"Project Unassignment: {project.ProjectName}";
+            var body = $@"
+                <h3>Hello {employee.Name},</h3>
+                <p>You have been unassigned from the project <strong>{project.ProjectName}</strong>.</p>
+                <p>If you believe this was a mistake, please contact your manager or HR.</p>
+                <br/>
+                <p>Regards,<br/>Human Resource</p>";
+
+            _ = Task.Run(() =>
+            {
+                try { _emailService.SendEmail(toEmail, subject, body); }
+                catch {
+
+                }
+            });
+        }
+
+        return true;
     }
 }

@@ -10,33 +10,18 @@
   <ItemGroup>
     <Compile Remove="DEMOAPI\**" />
     <Compile Remove="DEMOUI\**" />
-    <Compile Remove="GrpcClient\**" />
     <Content Remove="DEMOAPI\**" />
     <Content Remove="DEMOUI\**" />
-    <Content Remove="GrpcClient\**" />
     <EmbeddedResource Remove="DEMOAPI\**" />
     <EmbeddedResource Remove="DEMOUI\**" />
-    <EmbeddedResource Remove="GrpcClient\**" />
     <None Remove="DEMOAPI\**" />
     <None Remove="DEMOUI\**" />
-    <None Remove="GrpcClient\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="DEMOAPI\GrpcServices\DepartmentGrpcService.cs" />
-    <Compile Include="DEMOAPI\GrpcServices\EmployeeGrpcService.cs" />
-    <Compile Include="DEMOAPI\GrpcServices\NotificationGrpcService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="GrpcClient\GrpcClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Google.Protobuf" Version="3.33.5" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.76.0" />
-    <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.76.0" />
     <PackageReference Include="Grpc.Tools" Version="2.78.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -56,10 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="DEMOAPI\Protos\employee.proto" GrpcServices="Server" />
-    <Protobuf Include="DEMOAPI\Protos\department.proto" GrpcServices="Server" />
-    <Protobuf Include="DEMOAPI\Protos\notification.proto" GrpcServices="Server" />
+    <Protobuf Include="DEMOAPI\Protos\department.proto" />
+    <Protobuf Include="DEMOAPI\Protos\employee.proto" />
+    <Protobuf Include="DEMOAPI\Protos\notification.proto" />
   </ItemGroup>
-
 
 </Project>

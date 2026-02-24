@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "EmployeeApi.Grpc";
+
+package department;
+
+// gRPC service for Department operations
+service DepartmentGrpc {
+  rpc GetById (GetDepartmentRequest) returns (DepartmentResponse);
+  rpc GetAll (DepartmentEmpty) returns (DepartmentListResponse);
+}
+
+message DepartmentEmpty {}
+
+message GetDepartmentRequest {
+  int32 id = 1;
+}
+
+message DepartmentResponse {
+  int32 department_id = 1;
+  string department_name = 2;
+  optional string description = 3;
+  optional int32 manager_id = 4;
+  optional string manager_name = 5;
+  int32 employee_count = 6;
+}
+
+message DepartmentListResponse {
+  repeated DepartmentResponse departments = 1;
+}

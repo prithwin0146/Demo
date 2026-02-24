@@ -11,6 +11,7 @@ public class EmployeeService : IEmployeeService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordValidator _passwordValidator;
     private readonly IEmployeeMapper _mapper;
+    private readonly IEmailService _emailService;
 
     private static readonly HashSet<string> ValidRoles = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -35,12 +36,14 @@ public class EmployeeService : IEmployeeService
         IEmployeeRepository repository, 
         IUserRepository userRepository,
         IPasswordValidator passwordValidator,
-        IEmployeeMapper mapper)
+        IEmployeeMapper mapper,
+        IEmailService emailService)
     {
         _repository = repository;
         _userRepository = userRepository;
         _passwordValidator = passwordValidator;
         _mapper = mapper;
+        _emailService = emailService;
     }
     //GET ALL
     public List<EmployeeDto> GetAll()
@@ -87,6 +90,25 @@ public class EmployeeService : IEmployeeService
         };
 
         var createdEmployee = _repository.AddWithPassword(employee, dto.Password);
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                _emailService.SendEmail(
+                    createdEmployee.Email,
+                    "Welcome to the Team!",
+                    $@"<h3>Hello {createdEmployee.Name},</h3>
+                    <p>Welcome aboard! Your account has been created in the Employee Management System.</p>
+                    <p><strong>Role:</strong> {createdEmployee.JobRole}<br/>
+                    <strong>Email:</strong> {createdEmployee.Email}</p>
+                    <p>Please log in using your registered email and password.</p>
+                    <br/>
+                    <p>Regards,<br/>Human Resource</p>");
+            }
+            catch { }
+        });
+
         return _mapper.ToDto(createdEmployee);
     }
     //UPDATE
@@ -127,7 +149,34 @@ public class EmployeeService : IEmployeeService
         var emp = _repository.GetById(id);
         if (emp == null) return null;
 
+        var email = emp.Email;
+        var name = emp.Name;
+
         var deletedEmployee = _repository.Delete(emp);
+
+        var user = _userRepository.GetByEmail(email);
+        if (user != null)
+        {
+            _userRepository.Delete(user);
+            _userRepository.SaveChangesAsync().Wait();
+        }
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                _emailService.SendEmail(
+                    email,
+                    "Account Removed - Employee Management System",
+                    $@"<h3>Hello {name},</h3>
+                    <p>Your account has been removed from the Employee Management System.</p>
+                    <p>If you believe this was done in error, please contact your manager or the HR department.</p>
+                    <br/>
+                    <p>Regards,<br/>Human Resource</p>");
+            }
+            catch { }
+        });
+
         return _mapper.ToDto(deletedEmployee);
     }
 

@@ -20,19 +20,6 @@ namespace EmployeeApi.Controllers
             _emailService = emailService;
         }
 
-        //Test email 
-        [HttpGet("test-email")]
-        public IActionResult TestEmail()
-        {
-            _emailService.SendEmail(
-                "prithwin0146@gmail.com",
-                "Test Email",
-                "<h3>Email working successfully</h3>"
-            );
-
-            return Ok("Email Sent");
-        }
-
         // GET all employees
         [HttpGet]
         public ActionResult<List<EmployeeDto>> GetAll()
