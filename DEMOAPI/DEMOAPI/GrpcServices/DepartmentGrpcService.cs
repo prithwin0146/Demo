@@ -37,6 +37,42 @@ public class DepartmentGrpcService : DepartmentGrpc.DepartmentGrpcBase
         return Task.FromResult(response);
     }
 
+    public override Task<DepartmentResponse> CreateDepartment(CreateDepartmentRequest request, ServerCallContext context)
+    {
+        var dto = new DTOs.CreateDepartmentDto
+        {
+            DepartmentName = request.DepartmentName,
+            Description = request.Description,
+            ManagerId = request.ManagerId != 0 ? (int?)request.ManagerId : null
+        };
+        var createdId = _departmentService.Create(dto);
+        var created = _departmentService.GetById(createdId);
+        return Task.FromResult(MapToResponse(created));
+    }
+
+    public override Task<DepartmentResponse> UpdateDepartment(UpdateDepartmentRequest request, ServerCallContext context)
+    {
+        var dto = new DTOs.UpdateDepartmentDto
+        {
+            DepartmentName = request.DepartmentName,
+            Description = request.Description,
+            ManagerId = request.ManagerId != 0 ? (int?)request.ManagerId : null
+        };
+        var success = _departmentService.Update(request.DepartmentId, dto);
+        var updated = _departmentService.GetById(request.DepartmentId);
+        return Task.FromResult(MapToResponse(updated));
+    }
+
+    public override Task<DeleteDepartmentResponse> DeleteDepartment(DeleteDepartmentRequest request, ServerCallContext context)
+    {
+        var success = _departmentService.Delete(request.DepartmentId);
+        return Task.FromResult(new DeleteDepartmentResponse
+        {
+            Success = success,
+            Message = success ? "Department deleted successfully" : "Department deletion failed"
+        });
+    }
+
     private static DepartmentResponse MapToResponse(DTOs.DepartmentDto dto)
     {
         var response = new DepartmentResponse

@@ -15,9 +15,15 @@ while (true)
     Console.WriteLine("Choose a service:");
     Console.WriteLine("  1. Employees - Get All");
     Console.WriteLine("  2. Employees - Get By ID");
-    Console.WriteLine("  3. Departments - Get All");
-    Console.WriteLine("  4. Departments - Get By ID");
-    Console.WriteLine("  5. Notification - Send Email");
+    Console.WriteLine("  3. Employees - Create");
+    Console.WriteLine("  4. Employees - Update");
+    Console.WriteLine("  5. Employees - Delete");
+    Console.WriteLine("  6. Departments - Get All");
+    Console.WriteLine("  7. Departments - Get By ID");
+    Console.WriteLine("  8. Departments - Create");
+    Console.WriteLine("  9. Departments - Update");
+    Console.WriteLine(" 10. Departments - Delete");
+    Console.WriteLine(" 11. Notification - Send Email");
     Console.WriteLine("  0. Exit");
     Console.Write("\n> ");
 
@@ -27,27 +33,19 @@ while (true)
     {
         switch (choice)
         {
-            case "1":
-                await GetAllEmployees(employeeClient);
-                break;
-            case "2":
-                await GetEmployeeById(employeeClient);
-                break;
-            case "3":
-                await GetAllDepartments(departmentClient);
-                break;
-            case "4":
-                await GetDepartmentById(departmentClient);
-                break;
-            case "5":
-                await SendEmail(notificationClient);
-                break;
-            case "0":
-                Console.WriteLine("Bye!");
-                return;
-            default:
-                Console.WriteLine("Invalid choice.\n");
-                break;
+            case "1": await GetAllEmployees(employeeClient); break;
+            case "2": await GetEmployeeById(employeeClient); break;
+            case "3": await CreateEmployee(employeeClient); break;
+            case "4": await UpdateEmployee(employeeClient); break;
+            case "5": await DeleteEmployee(employeeClient); break;
+            case "6": await GetAllDepartments(departmentClient); break;
+            case "7": await GetDepartmentById(departmentClient); break;
+            case "8": await CreateDepartment(departmentClient); break;
+            case "9": await UpdateDepartment(departmentClient); break;
+            case "10": await DeleteDepartment(departmentClient); break;
+            case "11": await SendEmail(notificationClient); break;
+            case "0": Console.WriteLine("Bye!"); return;
+            default: Console.WriteLine("Invalid choice.\n"); break;
         }
     }
     catch (Grpc.Core.RpcException ex)
@@ -117,6 +115,148 @@ static async Task GetDepartmentById(DepartmentGrpc.DepartmentGrpcClient client)
     Console.WriteLine($"  Description: {(dept.HasDescription ? dept.Description : "N/A")}");
     Console.WriteLine($"  Manager:     {(dept.HasManagerName ? dept.ManagerName : "N/A")}");
     Console.WriteLine($"  Employees:   {dept.EmployeeCount}\n");
+}
+
+static async Task CreateEmployee(EmployeeGrpc.EmployeeGrpcClient client)
+{
+    Console.Write("  Name: ");
+    var name = Console.ReadLine() ?? "";
+    Console.Write("  Email: ");
+    var email = Console.ReadLine() ?? "";
+    Console.Write("  Job Role: ");
+    var jobRole = Console.ReadLine() ?? "";
+    Console.Write("  System Role: ");
+    var systemRole = Console.ReadLine() ?? "";
+    Console.Write("  Department ID (optional): ");
+    var deptIdStr = Console.ReadLine();
+    int deptId = 0;
+    int.TryParse(deptIdStr, out deptId);
+    var request = new CreateEmployeeRequest
+    {
+        Name = name,
+        Email = email,
+        JobRole = jobRole,
+        SystemRole = systemRole,
+        DepartmentId = deptId
+    };
+    var response = await client.CreateEmployeeAsync(request);
+    Console.WriteLine($"\n  Created Employee: [{response.Id}] {response.Name} | {response.Email}\n");
+}
+
+static async Task UpdateEmployee(EmployeeGrpc.EmployeeGrpcClient client)
+{
+    Console.Write("  Employee ID: ");
+    var idStr = Console.ReadLine();
+    if (!int.TryParse(idStr, out var id))
+    {
+        Console.WriteLine("  Invalid ID.\n");
+        return;
+    }
+    Console.Write("  Name: ");
+    var name = Console.ReadLine() ?? "";
+    Console.Write("  Email: ");
+    var email = Console.ReadLine() ?? "";
+    Console.Write("  Job Role: ");
+    var jobRole = Console.ReadLine() ?? "";
+    Console.Write("  System Role: ");
+    var systemRole = Console.ReadLine() ?? "";
+    Console.Write("  Department ID (optional): ");
+    var deptIdStr = Console.ReadLine();
+    int deptId = 0;
+    int.TryParse(deptIdStr, out deptId);
+    var request = new UpdateEmployeeRequest
+    {
+        Id = id,
+        Name = name,
+        Email = email,
+        JobRole = jobRole,
+        SystemRole = systemRole,
+        DepartmentId = deptId
+    };
+    var response = await client.UpdateEmployeeAsync(request);
+    Console.WriteLine($"\n  Updated Employee: [{response.Id}] {response.Name} | {response.Email}\n");
+}
+
+static async Task DeleteEmployee(EmployeeGrpc.EmployeeGrpcClient client)
+{
+    Console.Write("  Employee ID: ");
+    var idStr = Console.ReadLine();
+    if (!int.TryParse(idStr, out var id))
+    {
+        Console.WriteLine("  Invalid ID.\n");
+        return;
+    }
+    var request = new DeleteEmployeeRequest { Id = id };
+    var response = await client.DeleteEmployeeAsync(request);
+    Console.WriteLine($"\n  Success: {response.Success}\n  Message: {response.Message}\n");
+}
+
+
+
+
+
+
+
+static async Task CreateDepartment(DepartmentGrpc.DepartmentGrpcClient client)
+{
+    Console.Write("  Department Name: ");
+    var name = Console.ReadLine() ?? "";
+    Console.Write("  Description (optional): ");
+    var desc = Console.ReadLine() ?? "";
+    Console.Write("  Manager ID (optional): ");
+    var mgrIdStr = Console.ReadLine();
+    int mgrId = 0;
+    int.TryParse(mgrIdStr, out mgrId);
+    var request = new CreateDepartmentRequest
+    {
+        DepartmentName = name,
+        Description = desc,
+        ManagerId = mgrId
+    };
+    var response = await client.CreateDepartmentAsync(request);
+    Console.WriteLine($"\n  Created Department: [{response.DepartmentId}] {response.DepartmentName}\n");
+}
+
+static async Task UpdateDepartment(DepartmentGrpc.DepartmentGrpcClient client)
+{
+    Console.Write("  Department ID: ");
+    var idStr = Console.ReadLine();
+    if (!int.TryParse(idStr, out var id))
+    {
+        Console.WriteLine("  Invalid ID.\n");
+        return;
+    }
+    Console.Write("  Department Name: ");
+    var name = Console.ReadLine() ?? "";
+    Console.Write("  Description (optional): ");
+    var desc = Console.ReadLine() ?? "";
+    Console.Write("  Manager ID (optional): ");
+    var mgrIdStr = Console.ReadLine();
+    int mgrId = 0;
+    int.TryParse(mgrIdStr, out mgrId);
+    var request = new UpdateDepartmentRequest
+    {
+        DepartmentId = id,
+        DepartmentName = name,
+        Description = desc,
+        ManagerId = mgrId
+    };
+    var response = await client.UpdateDepartmentAsync(request);
+    Console.WriteLine($"\n  Updated Department: [{response.DepartmentId}] {response.DepartmentName}\n");
+}
+
+static async Task DeleteDepartment(DepartmentGrpc.DepartmentGrpcClient client)
+{
+    Console.Write("  Department ID: ");
+    var idStr = Console.ReadLine();
+    if (!int.TryParse(idStr, out var id))
+    {
+        Console.WriteLine("  Invalid ID.\n");
+        return;
+    }
+    var request = new DeleteDepartmentRequest { DepartmentId = id };
+    var response = await client.DeleteDepartmentAsync(request);
+    Console.WriteLine($"\n  Success: {response.Success}\n  Message: {response.Message}\n");
 }
 
 static async Task SendEmail(NotificationGrpc.NotificationGrpcClient client)

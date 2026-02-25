@@ -26,10 +26,8 @@
     <Compile Include="DEMOAPI\GrpcServices\DepartmentGrpcService.cs" />
     <Compile Include="DEMOAPI\GrpcServices\EmployeeGrpcService.cs" />
     <Compile Include="DEMOAPI\GrpcServices\NotificationGrpcService.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="GrpcClient\GrpcClient.csproj" />
+    <Protobuf Include="DEMOAPI\Protos\employee.proto" GrpcServices="Server" />
+    <Protobuf Include="DEMOAPI\Protos\department.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
