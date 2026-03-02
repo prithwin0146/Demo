@@ -1,0 +1,115 @@
+<div class="page-container">
+  <div class="page-header">
+    <mat-icon class="header-icon">description</mat-icon>
+    <h1>Markdown to Word Converter</h1>
+    <p class="subtitle">Convert your <strong>.md</strong> files or Markdown text into a <strong>.docx</strong> Word document.</p>
+  </div>
+
+  <!-- Tab selector -->
+  <div class="tab-bar">
+    <button
+      [class.active]="activeTab === 'text'"
+      (click)="activeTab = 'text'; clearMessages()"
+      mat-button>
+      <mat-icon>edit_note</mat-icon> Paste Markdown
+    </button>
+    <button
+      [class.active]="activeTab === 'file'"
+      (click)="activeTab = 'file'; clearMessages()"
+      mat-button>
+      <mat-icon>upload_file</mat-icon> Upload .md File
+    </button>
+  </div>
+
+  <!-- Alerts -->
+  @if (error) {
+    <div class="alert alert-error">
+      <mat-icon>error_outline</mat-icon>
+      {{ error }}
+    </div>
+  }
+  @if (successMessage) {
+    <div class="alert alert-success">
+      <mat-icon>check_circle_outline</mat-icon>
+      {{ successMessage }}
+    </div>
+  }
+
+  <!-- Text tab -->
+  @if (activeTab === 'text') {
+    <div class="card">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Output file name (without extension)</mat-label>
+        <input matInput [(ngModel)]="fileName" placeholder="document" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Markdown Content</mat-label>
+        <textarea
+          matInput
+          [(ngModel)]="markdownContent"
+          rows="16"
+          placeholder="# Hello World&#10;&#10;Type your **Markdown** content here..."
+          class="markdown-textarea">
+        </textarea>
+      </mat-form-field>
+
+      <div class="actions">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="convertText()"
+          [disabled]="converting">
+          @if (converting) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>download</mat-icon>
+          }
+          Convert &amp; Download
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- File upload tab -->
+  @if (activeTab === 'file') {
+    <div class="card">
+      <div class="upload-area">
+        <mat-icon class="upload-icon">upload_file</mat-icon>
+        <p>Select a <strong>.md</strong> file from your computer</p>
+        <input
+          #fileInput
+          type="file"
+          accept=".md"
+          (change)="onFileSelected($event)"
+          class="file-input"
+          id="fileInput" />
+        <label for="fileInput" class="file-label" mat-stroked-button>
+          <mat-icon>folder_open</mat-icon>
+          Choose File
+        </label>
+        @if (selectedFile) {
+          <p class="selected-file">
+            <mat-icon>insert_drive_file</mat-icon>
+            {{ selectedFile.name }}
+          </p>
+        }
+      </div>
+
+      <div class="actions">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="convertFile()"
+          [disabled]="converting || !selectedFile">
+          @if (converting) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <mat-icon>download</mat-icon>
+          }
+          Convert &amp; Download
+        </button>
+      </div>
+    </div>
+  }
+</div>
