@@ -16,6 +16,7 @@ import { DepartmentListComponent } from './departments/department-list/departmen
 import { AddDepartmentComponent } from './departments/add-department/add-department';
 import { EditDepartmentComponent } from './departments/edit-department/edit-department';
 import { DepartmentViewComponent } from './departments/department-view/department-view';
+import { MdToDocxComponent } from './documents/md-to-docx/md-to-docx';
 
 
 export const routes: Routes = [
@@ -44,10 +45,10 @@ export const routes: Routes = [
       { path: 'departments/add', component: AddDepartmentComponent },
       { path: 'departments/edit/:id', component: EditDepartmentComponent },
       { path: 'departments/:id', component: DepartmentViewComponent },
+      { path: 'documents/md-to-docx', component: MdToDocxComponent },
     ]
   },
 
   { path: '**', redirectTo: 'login' }
 ];
-
 
